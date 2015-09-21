@@ -44,10 +44,10 @@ classdef RotationBody2DTest < matlab.unittest.TestCase
         function inertiaSlowsAcceleration(testCase)
             duration = 1;
             torque =  0.1;
+            testCase.TestBody.setInertia(10);
             testCase.TestBody.applyTorque(torque, duration);
-            testCase.verifyEqual(testCase.TestBody.getVel(), 0.1);
-            testCase.verifyEqual(testCase.TestBody.getPos(), 0.05);
+            testCase.verifyEqual(testCase.TestBody.getVel(), 0.1/10);
+            testCase.verifyEqual(testCase.TestBody.getPos(), 0.05/10);
         end
-
     end
 end
