@@ -41,18 +41,25 @@ x_est = [x_0]; % KF corrected estimate
 x = [theta_0;
 	 omega_0]; % Exact state of system
 
+P_pred = zeros(2,2,num_steps+1);
+P_est = zeros(2,2,num_steps+1);
+P_pred(:,:,1) = P_0;
+P_est(:,:,1) = P_0;
+
 % Simulate rotating system and run KF
-for i = 1:(num_steps + 1)
+for i = 1:num_steps
 	time = [time, i * dt];
 	System.update(0, dt);
 
 	x = [x, System.measurePosVel([0; 0])];
 
-	KF.predict(0, 0);
+	KF.predict(0, zeros(2));
 	x_pred = [x_pred, KF.x];
+	P_pred(:,:,i+1) = KF.P;
 
-	KF.measure(System.measurePosVel(noiseStdDev), 0.5 * eye(2));
+	KF.measure(System.measurePosVel(noiseStdDev), diag(noiseStdDev.^2));
 	x_est = [x_est, KF.x];
+	P_est(:,:,i+1) = KF.P;
 end
 
-plot_KF_results(time, x, x_pred, x_est, ['Position'; 'Velocity'])
+plot_KF_results(time, x, x_est, P_est, ['Position'; 'Velocity'])
