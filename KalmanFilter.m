@@ -25,7 +25,12 @@ classdef KalmanFilter < handle
         end
 
         function measure(self, z, R)
-
+            y = z - self.H * self.x;
+            S = self.H * self.P * self.H' + R;
+            K = self.P * self.H' / S;
+            self.x = self.x + K * y;
+            n = length(self.P);
+            self.P = (eye(n) - K * self.H) * self.P;
         end
 
         function reset(self, x, P)
