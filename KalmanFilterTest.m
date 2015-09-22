@@ -64,11 +64,21 @@ classdef KalmanFilterTest < matlab.unittest.TestCase
             u = -1;
             Q = eye(3)*0.1;
             P_expect = flt.F * flt.P * flt.F' + Q;
-            testCase.threeState.predict(u, Q);
+            flt.predict(u, Q);
             testCase.verifyEqual(flt.x, [0; 1; 0]);
             testCase.verifyEqual(flt.P, P_expect);
-            testCase.threeState.predict(u, Q);
+            flt.predict(u, Q);
             testCase.verifyEqual(flt.x, [1; 1; -1]);
+        end
+
+        function ThreeStateMeasurementUpdate(testCase)
+            flt = testCase.threeState;
+            x0 = flt.x;
+            z = [0.1; -0.2];
+            R = eye(2);
+            flt.measure(z, R);
+            K = flt.P*flt.H' / (flt.H*flt.P*flt.H' + R);
+            testCase.verifyEqual(flt.x, x0 + K * (z - flt.H*x0));
         end
     end
 end
