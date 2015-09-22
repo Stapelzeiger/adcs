@@ -34,16 +34,12 @@ classdef RotationBody2D < handle
             inertia = self.inertia;
         end
 
-<<<<<<< Updated upstream
         function posVel = measurePosVel(self, noiseStdDev)
             noise = [randn()*noiseStdDev(1); randn()*noiseStdDev(2)];
             posVel = [self.position; self.velocity] + noise;
         end
 
-        function applyTorque(self, torque, duration)
-=======
         function update(self, torque, duration)
->>>>>>> Stashed changes
             acc = torque / self.inertia;
             self.position = self.position + self.velocity * duration;
             self.position = self.position + 1/2*acc * duration^2;
