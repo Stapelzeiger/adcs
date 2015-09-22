@@ -49,5 +49,16 @@ classdef RotationBody2DTest < matlab.unittest.TestCase
             testCase.verifyEqual(testCase.TestBody.getVel(), 0.1/10);
             testCase.verifyEqual(testCase.TestBody.getPos(), 0.05/10);
         end
+
+        function measureNoisyState(testCase)
+            testCase.TestBody.setPos(1);
+            testCase.TestBody.setVel(2);
+            seed = 42;
+            noise=[0.1; 1];
+            rng(seed);
+            z = testCase.TestBody.measurePosVel(noise);
+            rng(seed);
+            testCase.verifyEqual(z, [1 + randn()*noise(1); 2 + randn()*noise(2)]);
+        end
     end
 end
