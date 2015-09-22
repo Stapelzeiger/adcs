@@ -18,7 +18,7 @@ classdef KalmanFilterTest < matlab.unittest.TestCase
         function initThreeState(testCase)
             F = [[1, 1, 0]; ...
                  [0, 1, 1]; ...
-                 [0, 0, 1]]
+                 [0, 0, 1]]; % integrator
             B = [0; 0; 1];
             H = [[0.1, 0, 0]; ...
                  [0, 0.1, 0]];
@@ -60,7 +60,15 @@ classdef KalmanFilterTest < matlab.unittest.TestCase
         end
 
         function ThreeStatePredictionUpdate(testCase)
-            u = -1
+            flt = testCase.threeState;
+            u = -1;
+            Q = eye(3)*0.1;
+            P_expect = flt.F * flt.P * flt.F' + Q;
+            testCase.threeState.predict(u, Q);
+            testCase.verifyEqual(flt.x, [0; 1; 0]);
+            testCase.verifyEqual(flt.P, P_expect);
+            testCase.threeState.predict(u, Q);
+            testCase.verifyEqual(flt.x, [1; 1; -1]);
         end
     end
 end
