@@ -6,7 +6,6 @@ classdef RotationBody2D < handle
         inertia = 1 % moment of inertia [m^2*kg]
         velocity = 0 % angular velocity [rad/s]
         position = 0 % angular position [rad]
-        time = 0 % time elapsed [s]
     end
 
     methods
