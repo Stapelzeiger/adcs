@@ -1,7 +1,7 @@
 classdef RotationBody3D < handle
     properties (SetAccess = private)
         attitude = [1, 0, 0, 0]
-        rate = [0, 0, 0]
+        rate = [0; 0; 0] % expressed in body frame
         inertia
     end
 
@@ -35,7 +35,17 @@ classdef RotationBody3D < handle
         end
 
         function update(self, torque, duration)
-            
+            function x_dot = diff_eq(t, x)
+                attitude = x(1:4);
+                omega = x(5:7);
+                attitude_dot = 1/2 * quatmult(attitude, [0; omega]);
+                omega_dot = zeros(3, 1);
+                x_dot = [attitude_dot; omega_dot];
+            end
+            x = [self.attitude'; self.rate];
+            [t, x] = ode45(@diff_eq, [0 duration], x);
+            self.attitude = x(end, 1:4);
+            self.rate = x(end, 5:7)';
         end
     end
 end
