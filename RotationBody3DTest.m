@@ -35,5 +35,19 @@ classdef RotationBody3DTest < matlab.unittest.TestCase
             testCase.verifyEqual(testCase.TestBody.getAttitude, [(1-0.05^2)^0.5, 0.05, 0, 0], 'AbsTol', 0.0001);
             testCase.verifyEqual(testCase.TestBody.getRate, [1; 0; 0]);
         end
+
+        function updateZeroTorqueCoupledAxis(testCase)
+            delta_t = 0.1;
+            testCase.TestBody.setRate([1; 1; 0]);
+            L0b = testCase.TestBody.getInertia * testCase.TestBody.getRate;
+            L0 = rotate_by_quaternion(L0b, quatconj(testCase.TestBody.getAttitude));
+
+            testCase.TestBody.update([0; 0; 0], delta_t)
+
+            L1b = testCase.TestBody.getInertia * testCase.TestBody.getRate;
+            L1 = rotate_by_quaternion(L1b, quatconj(testCase.TestBody.getAttitude));
+            % conservation of angular momentum:
+            testCase.verifyEqual(L1, L0, 'AbsTol', 0.2); % todo
+        end
     end
 end

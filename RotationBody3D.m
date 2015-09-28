@@ -39,7 +39,9 @@ classdef RotationBody3D < handle
                 attitude = x(1:4);
                 omega = x(5:7);
                 attitude_dot = 1/2 * quatmult(attitude, [0; omega]);
-                omega_dot = zeros(3, 1);
+                I = self.inertia;
+                % T = I * omega_dot + omega x I * omega
+                omega_dot = I \ (torque - cross(omega, I * omega));
                 x_dot = [attitude_dot; omega_dot];
             end
             x = [self.attitude'; self.rate];
