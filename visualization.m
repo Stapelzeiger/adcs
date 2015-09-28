@@ -19,6 +19,8 @@ hold off;
 
 body_plot = patch('FaceColor', 'flat');
 % estim_plot = patch('FaceColor', 'flat', 'FaceAlpha',.7);
+ang_mom_v = patch('EdgeColor', 'c');
+omega_v = patch('EdgeColor', 'r');
 
 inerta = [1, 2, 3];
 b = RotationBody3D(diag(inerta));
@@ -29,6 +31,15 @@ b.setRate([0.1; 10; 0]);
 delta_t = 0.01;
 for t = 0:delta_t:60
     b.update([0; 0; 0], delta_t);
+
+    omega = b.getRate;
+    Lb = b.getInertia * omega;
+    L = rotate_by_quaternion(Lb, b.getAttitude);
+    ang_mom_v.set('XData', [0, L(1)], 'YData', [0, L(2)], 'ZData', [0, L(3)]);
+
+    omega_i = rotate_by_quaternion(omega, b.getAttitude);
+    omega_v.set('XData', [0, omega_i(1)], 'YData', [0, omega_i(2)], 'ZData', [0, omega_i(3)]);
+
     % e.update([0; 0; 0], delta_t);
     cube_plot(body_plot,[0,0,0],inerta(1),inerta(2),inerta(3), b.getAttitude);
     % cube_plot(estim_plot,[6,0,0],inerta(1),inerta(2),inerta(3), e.getAttitude);
