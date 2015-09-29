@@ -63,5 +63,18 @@ classdef RotationBody3DTest < matlab.unittest.TestCase
             exact = rotate_by_quaternion([1; 0; 0], quatconj(att));
             testCase.verifyEqual(vm, exact + [randn(); randn(); randn()] * noise)
         end
+
+        function measureRate(testCase)
+            rate = [1; 2; 3];
+            testCase.TestBody.setRate(rate);
+            noise = 0.1;
+            seed = 42;
+
+            rng(seed);
+            om = testCase.TestBody.measureRate(noise);
+
+            rng(seed);
+            testCase.verifyEqual(om, rate + randn(3, 1)*noise)
+        end
     end
 end

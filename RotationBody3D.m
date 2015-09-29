@@ -55,5 +55,10 @@ classdef RotationBody3D < handle
             vBody = rotate_by_quaternion(vInertial, quatconj(self.attitude));
             vBody = vBody + randn(3, 1) * noiseStdDev;
         end
+
+        % measure the angular rate with additive noise
+        function omega = measureRate(self, noiseStdDev)
+            omega = self.rate + randn(3, 1) * noiseStdDev;
+        end
     end
 end
