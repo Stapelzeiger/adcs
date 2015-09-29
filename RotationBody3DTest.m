@@ -11,7 +11,7 @@ classdef RotationBody3DTest < matlab.unittest.TestCase
 
     methods (Test)
         function initZero(testCase)
-            testCase.verifyEqual(testCase.TestBody.getAttitude, [1, 0, 0, 0]);
+            testCase.verifyEqual(testCase.TestBody.getAttitude, [1; 0; 0; 0]);
             testCase.verifyEqual(testCase.TestBody.getRate, [0; 0; 0]);
         end
 
@@ -20,8 +20,8 @@ classdef RotationBody3DTest < matlab.unittest.TestCase
         end
 
         function settersGetters(testCase)
-            testCase.TestBody.setAttitude([0, 1, 0, 0]);
-            testCase.verifyEqual(testCase.TestBody.getAttitude, [0, 1, 0, 0]);
+            testCase.TestBody.setAttitude([0; 1; 0; 0]);
+            testCase.verifyEqual(testCase.TestBody.getAttitude, [0; 1; 0; 0]);
             testCase.TestBody.setRate([1; 1; 1]);
             testCase.verifyEqual(testCase.TestBody.getRate, [1; 1; 1]);
             testCase.TestBody.setInertia(diag([11, 22, 33]));
@@ -32,7 +32,7 @@ classdef RotationBody3DTest < matlab.unittest.TestCase
             delta_t = 0.1;
             testCase.TestBody.setRate([1; 0; 0]);
             testCase.TestBody.update([0; 0; 0], delta_t)
-            testCase.verifyEqual(testCase.TestBody.getAttitude, [(1-0.05^2)^0.5, 0.05, 0, 0], 'AbsTol', 0.0001);
+            testCase.verifyEqual(testCase.TestBody.getAttitude, [(1-0.05^2)^0.5; 0.05; 0; 0], 'AbsTol', 0.0001);
             testCase.verifyEqual(testCase.TestBody.getRate, [1; 0; 0]);
         end
 
