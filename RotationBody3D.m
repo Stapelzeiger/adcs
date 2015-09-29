@@ -49,5 +49,11 @@ classdef RotationBody3D < handle
             self.attitude = x(end, 1:4)';
             self.rate = x(end, 5:7)';
         end
+
+        % measure a vector (given in the inertial frame) in the body frame with additive noise
+        function vBody = measureVector(self, vInertial, noiseStdDev)
+            vBody = rotate_by_quaternion(vInertial, quatconj(self.attitude));
+            vBody = vBody + randn(3, 1) * noiseStdDev;
+        end
     end
 end

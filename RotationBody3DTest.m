@@ -49,5 +49,19 @@ classdef RotationBody3DTest < matlab.unittest.TestCase
             % conservation of angular momentum:
             testCase.verifyEqual(L1, L0, 'AbsTol', 0.00000001);
         end
+
+        function measureVector(testCase)
+            att = [cos(0.1); 0; 0; sin(0.1)];
+            testCase.TestBody.setAttitude(att)
+            noise = 0.1;
+            seed = 42;
+
+            rng(seed);
+            vm = testCase.TestBody.measureVector([1; 0; 0], noise);
+
+            rng(seed);
+            exact = rotate_by_quaternion([1; 0; 0], quatconj(att));
+            testCase.verifyEqual(vm, exact + [randn(); randn(); randn()] * noise)
+        end
     end
 end
