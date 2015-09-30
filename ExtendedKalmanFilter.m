@@ -1,4 +1,4 @@
-classdef ExtendedKalmanFilter
+classdef ExtendedKalmanFilter < handle
     properties
         % state
         x
@@ -12,7 +12,8 @@ classdef ExtendedKalmanFilter
 
     methods
         function obj = ExtendedKalmanFilter(n, f, F, h, H)
-            x = zeros(n, 1);
+            obj.x = zeros(n, 1);
+            obj.P = eye(n);
             obj.f = f;
             obj.F = F;
             obj.h = h;
@@ -20,7 +21,8 @@ classdef ExtendedKalmanFilter
         end
 
         function predict(self, u, Q)
-            self.x = self.f(x, u);
+            self.f(self.x, u)
+            self.x = self.f(self.x, u);
             F = self.F(self.x, u);
             self.P = F * self.P * F' + Q;
         end
