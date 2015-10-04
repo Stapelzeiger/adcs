@@ -9,7 +9,7 @@ b = RotationBody3D(diag(inerta));
 b.setRate([0.1; 10; 0]);
 
 
-delta_t = 0.01;
+delta_t = 0.001;
 k = Kalman3DBody(delta_t, inerta);
 
 
@@ -69,38 +69,45 @@ P_image = imagesc(k.K.P, [-0.01 0.01]);
 colormap(jet(100))
 colorbar
 
+redraw_cntdwn = 0.1;
 for t = 0:delta_t:60
-    omega = b.getRate;
-    Lb = b.getInertia * omega;
-    L = rotate_by_quaternion(Lb, b.getAttitude);
-    ang_mom_v.set('XData', [0, L(1)], 'YData', [0, L(2)], 'ZData', [0, L(3)]);
+    redraw_cntdwn = redraw_cntdwn - delta_t;
+    if (redraw_cntdwn <= 0)
+        redraw_cntdwn = 0.01;
 
-    omega_i = rotate_by_quaternion(omega, b.getAttitude);
-    omega_v.set('XData', [0, omega_i(1)], 'YData', [0, omega_i(2)], 'ZData', [0, omega_i(3)]);
+        omega = b.getRate;
+        Lb = b.getInertia * omega;
+        L = rotate_by_quaternion(Lb, b.getAttitude);
+        ang_mom_v.set('XData', [0, L(1)], 'YData', [0, L(2)], 'ZData', [0, L(3)]);
 
-    cube_plot(body_plot,[0,0,0],inerta(1),inerta(2),inerta(3), b.getAttitude);
-    cube_plot(estim_plot,[6,0,0],inerta(1),inerta(2),inerta(3), k.get_attitude);
+        omega_i = rotate_by_quaternion(omega, b.getAttitude);
+        omega_v.set('XData', [0, omega_i(1)], 'YData', [0, omega_i(2)], 'ZData', [0, omega_i(3)]);
 
-    body_rate = b.getRate();
-    kalman_rate = k.get_omega();
-    addpoints(roll,t,body_rate(1));
-    addpoints(roll_estim,t,kalman_rate(1));
-    addpoints(pitch,t,body_rate(2));
-    addpoints(pitch_estim,t,kalman_rate(2));
-    addpoints(yaw,t,body_rate(3));
-    addpoints(yaw_estim,t,kalman_rate(3));
+        cube_plot(body_plot,[0,0,0],inerta(1),inerta(2),inerta(3), b.getAttitude);
+        cube_plot(estim_plot,[6,0,0],inerta(1),inerta(2),inerta(3), k.get_attitude);
 
-    state_var = diag(k.K.P);
-    rate_err = norm(b.getRate() - k.get_omega);
-    att_err = quatmult(b.getAttitude, quatconj(k.get_attitude));
-    att_err = norm(att_err(2:4));
-    addpoints(attitude_error,t, att_err);
-    addpoints(attitude_error_stddev,t, sqrt(max(state_var(1:4))));
-    addpoints(rate_error,t, rate_err);
-    addpoints(rate_error_stddev,t, sqrt(max(state_var(5:7))));
+        body_rate = b.getRate();
+        kalman_rate = k.get_omega();
+        addpoints(roll,t,body_rate(1));
+        addpoints(roll_estim,t,kalman_rate(1));
+        addpoints(pitch,t,body_rate(2));
+        addpoints(pitch_estim,t,kalman_rate(2));
+        addpoints(yaw,t,body_rate(3));
+        addpoints(yaw_estim,t,kalman_rate(3));
 
-    set(P_image,'CData',k.K.P)
-    pause(delta_t);
+        state_var = diag(k.K.P);
+        rate_err = norm(b.getRate() - k.get_omega);
+        att_err = quatmult(b.getAttitude, quatconj(k.get_attitude));
+        att_err = norm(att_err(2:4));
+        addpoints(attitude_error,t, att_err);
+        addpoints(attitude_error_stddev,t, sqrt(max(state_var(1:4))));
+        addpoints(rate_error,t, rate_err);
+        addpoints(rate_error_stddev,t, sqrt(max(state_var(5:7))));
+
+        set(P_image,'CData',k.K.P)
+        % pause(delta_t);
+        drawnow
+    end
 
     b.update([0; 0; 0], delta_t);
     k.update();

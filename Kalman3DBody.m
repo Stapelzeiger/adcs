@@ -13,7 +13,7 @@ classdef Kalman3DBody < handle
             Kalman3DBodySymbolicDerivation
             f__ = matlabFunction(subs(f, [dt; I11; I22; I33], [delta_t; inertia']), 'Vars', x);
             f_ = @(x_, u) f__(x_(1), x_(2), x_(3), x_(4), x_(5), x_(6), x_(7));
-            % f_ = @(x_, u) state_update(x_, delta_t);
+            % f_ = @(x_, u) state_update(x_, delta_t); % use ode45, INERTIA IS HARDCODED!!!
             F__ = matlabFunction(subs(F, [dt; I11; I22; I33], [delta_t; inertia']), 'Vars', x);
             F_ = @(x_, u) F__(x_(1), x_(2), x_(3), x_(4), x_(5), x_(6), x_(7));
             h__ = matlabFunction(subs(h, dt, delta_t), 'Vars', x);
