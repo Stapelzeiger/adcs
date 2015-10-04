@@ -15,25 +15,27 @@ classdef Kalman3DBody < handle
             F_ = @(x_, u) double(subs(F, x, x_));
             h_ = @(x_) double(subs(h, x, x_));
             H_ = @(x_) double(subs(H, x, x_));
-            % f_ = @(x_, u) subs(f, [x; dt, I11; I22; I33], [x_; delta_t; I_1; I_2; I_3]);
-            % F_ = @(x_, u) subs(F, [x; dt, I11; I22; I33], [x_; delta_t; I_1; I_2; I_3]);
-            % h_ = @(x_) subs(h, [x; dt, I11; I22; I33], [x_; delta_t; I_1; I_2; I_3]);
-            % H_ = @(x_) subs(H, [x; dt, I11; I22; I33], [x_; delta_t; I_1; I_2; I_3]);
-            obj.Q = eye(7)*0.000001;
-            obj.R = eye(6)*0.001;
+            obj.Q = diag([ones(1, 4)*0.001^2, ones(1, 3)*0.001^2]);
+            obj.R = eye(6)*0.1^2;
             obj.K = ExtendedKalmanFilter(7, f_, F_, h_, H_);
             obj.delta_t = delta_t;
-            obj.K.reset([1; 0; 0; 0; 0; 0; 0], eye(7)*0.1)
+            P_init = diag([ones(1, 4)*3^2, ones(1, 3)*1^2]);
+            obj.K.reset([cos(pi/4); 0; 0; sin(pi/4); 0; 0; 0], P_init)
         end
 
-        function update(self)
-            self.K.predict(0, self.Q)
+        function normalize(self)
             n = norm(self.K.x(1:4));
             self.K.x(1:4) = self.K.x(1:4)/n;
         end
 
+        function update(self)
+            self.K.predict(0, self.Q)
+            self.normalize()
+        end
+
         function measure(self, E1, E2)
             self.K.measure([E1; E2], self.R)
+            self.normalize()
         end
 
         function att = get_attitude(self)
