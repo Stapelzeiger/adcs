@@ -7,14 +7,13 @@ classdef Kalman3DBody < handle
     end
 
     methods
-        function obj = Kalman3DBody(delta_t, I_1, I_2, I_3)
+        function obj = Kalman3DBody(delta_t, inertia)
             % State vector: [q1 q2, q3, q4, omega1, omega2, omega3]
             % measurement z = [E1_1, E1_2, E1_3, E2_1, E2_2, E2_3]
             Kalman3DBodySymbolicDerivation
-            f_ = @(x_, u) double(subs(f, x, x_));
+            f_ = @(x_, u) double(subs(f, [x; I11; I22; I33], [x_; inertia']));
             % f_ = @(x_, u) state_update(x_, delta_t);
-
-            F_ = @(x_, u) double(subs(F, x, x_));
+            F_ = @(x_, u) double(subs(F, [x; I11; I22; I33], [x_; inertia']));
             h_ = @(x_) double(subs(h, x, x_));
             H_ = @(x_) double(subs(H, x, x_));
             obj.Q = diag([ones(1, 4)*0.001^2, ones(1, 3)*0.001^2]);

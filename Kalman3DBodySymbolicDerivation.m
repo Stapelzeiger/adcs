@@ -9,10 +9,7 @@ q = [q1; q2; q3; q4];
 % q = [sqrt(1 - q2^2 - q3^2 - q4^2); q2; q3; q4];
 
 % inertia tensor
-% syms I11 I22 I33 I12 I23 I13
-I11 = 1.0;
-I22 = 2.0;
-I33 = 3.0;
+syms I11 I22 I33 I12 I23 I13
 % I = [I11, I12, I13;
 %      I12, I22, I23;
 %      I13, I23, I33];

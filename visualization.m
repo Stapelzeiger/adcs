@@ -10,7 +10,7 @@ b.setRate([0.1; 10; 0]);
 
 
 delta_t = 0.01;
-k = Kalman3DBody(delta_t, inerta(1), inerta(2), inerta(3));
+k = Kalman3DBody(delta_t, inerta);
 
 
 axis equal;
