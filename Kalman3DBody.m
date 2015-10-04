@@ -11,11 +11,15 @@ classdef Kalman3DBody < handle
             % State vector: [q1 q2, q3, q4, omega1, omega2, omega3]
             % measurement z = [E1_1, E1_2, E1_3, E2_1, E2_2, E2_3]
             Kalman3DBodySymbolicDerivation
-            f_ = @(x_, u) double(subs(f, [x; I11; I22; I33], [x_; inertia']));
+            f__ = matlabFunction(subs(f, [dt; I11; I22; I33], [delta_t; inertia']), 'Vars', x);
+            f_ = @(x_, u) f__(x_(1), x_(2), x_(3), x_(4), x_(5), x_(6), x_(7));
             % f_ = @(x_, u) state_update(x_, delta_t);
-            F_ = @(x_, u) double(subs(F, [x; I11; I22; I33], [x_; inertia']));
-            h_ = @(x_) double(subs(h, x, x_));
-            H_ = @(x_) double(subs(H, x, x_));
+            F__ = matlabFunction(subs(F, [dt; I11; I22; I33], [delta_t; inertia']), 'Vars', x);
+            F_ = @(x_, u) F__(x_(1), x_(2), x_(3), x_(4), x_(5), x_(6), x_(7));
+            h__ = matlabFunction(subs(h, dt, delta_t), 'Vars', x);
+            h_ = @(x_) h__(x_(1), x_(2), x_(3), x_(4), x_(5), x_(6), x_(7));
+            H__ = matlabFunction(subs(H, dt, delta_t), 'Vars', x);
+            H_ = @(x_) H__(x_(1), x_(2), x_(3), x_(4), x_(5), x_(6), x_(7));
             obj.Q = diag([ones(1, 4)*0.001^2, ones(1, 3)*0.001^2]);
             obj.R = eye(6)*0.1^2;
             obj.K = ExtendedKalmanFilter(7, f_, F_, h_, H_);

@@ -32,8 +32,7 @@ qdot = 1/2 * quatmult(q, [0; w])
 wdot = I_inv * (t - cross(w, I*w))
 
 % using euler integration : dx = x_dot * dt
-% syms dt
-dt = 0.01
+syms dt
 dq = qdot * dt;
 dw = wdot * dt;
 dx = [dq; dw]
