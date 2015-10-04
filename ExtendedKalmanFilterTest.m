@@ -6,55 +6,43 @@ classdef ExtendedKalmanFilterTest < matlab.unittest.TestCase
     methods (TestMethodSetup)
         function init(testCase)
             % oscillator
-            % x_dot = [x(2); -sin(x(1)) + x(2)*u]
+            % x_dot = [x(2); -x(1)^3 + u]
             % z = x(2)^2
             syms x1 x2 u
-            dt = 1;
-            f = @(x, u) dt * [x(2); -sin(x(1)) + x(2)*u] + x;
-            F = jacobian(f([x1; x2], u), [x1; x2]);
+            dt = 0.1;
+            f = @(x, u) x + dt * [x(2); -x(1)^3 + u];
+            F = @(x, u) subs(jacobian(f([x1; x2], u), [x1; x2]), [x1; x2], [x(1); x(2)]);
             h = @(x) [x(2)^2];
-            H = jacobian(h([x1; x2]), [x1; x2]);
+            H = @(x) subs(jacobian(h([x1; x2], u), [x1; x2]), [x1; x2], [x(1); x(2)]);
             testCase.Kalman = ExtendedKalmanFilter(2, f, F, h, H);
         end
     end
 
     methods (Test)
         function initZero(testCase)
-
+            testCase.verifyEqual(testCase.Kalman.x, [0; 0])
+            testCase.verifyEqual(testCase.Kalman.P, eye(2))
         end
 
-        % function linearize(testCase)
-        %     testCase.Kalman.x = [1; 3];
+        function reset(testCase)
+            testCase.Kalman.reset([1; 2], diag([0.1, 0.2]));
+            testCase.verifyEqual(testCase.Kalman.x, [1; 2])
+            testCase.verifyEqual(testCase.Kalman.P, diag([0.1, 0.2]))
+        end
 
-        %     testCase.Kalman.linearize()
+        function predict(testCase)
+            dt = 0.1;
+            u = 0.3;
+            Q = eye(2)*0.1;
+            testCase.Kalman.predict(u, Q);
 
-        %     testCase.verifyEqual(testCase.Kalman.F, diag([1, -cos(1)]))
-        %     testCase.verifyEqual(testCase.Kalman.B, [0; 3])
-        %     testCase.verifyEqual(testCase.Kalman.H, [0, 2*3])
-        % end
+            F = testCase.Kalman.F([0; 0], 0);
+            testCase.verifyEqual(testCase.Kalman.x, dt*[0; u])
+            testCase.verifyEqual(testCase.Kalman.P, F * eye(2) * F' + Q)
+        end
 
-        % function predictCallsLinearize(testCase)
-        %     testCase.Kalman.x = [1; 3];
-        %     testCase.Kalman.predict(0, 1);
-        %     testCase.verifyEqual(testCase.Kalman.B, [0; 3]) % B updated
-        % end
-
-        % function measureCallsLinearize(testCase)
-        %     testCase.Kalman.x = [1; 3];
-        %     testCase.Kalman.measure(0, 1);
-        %     testCase.verifyEqual(testCase.Kalman.B, [0; 3]) % B updated
-        % end
-
-        % function predictCallsKalman(testCase)
-        %     testCase.Kalman.x = [1; 3];
-        %     testCase.Kalman.predict(0, 1);
-        %     testCase.verifyNotEqual(testCase.Kalman.x, [1; 3]) % x changed
-        % end
-
-        % function measureCallsKalman(testCase)
-        %     testCase.Kalman.x = [1; 3];
-        %     testCase.Kalman.measure(0, 1);
-        %     testCase.verifyNotEqual(testCase.Kalman.x, [1; 3]) % x changed
-        % end
+        function measure(testCase)
+            
+        end
     end
 end
