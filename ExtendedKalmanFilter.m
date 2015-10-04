@@ -21,7 +21,6 @@ classdef ExtendedKalmanFilter < handle
         end
 
         function predict(self, u, Q)
-            self.f(self.x, u)
             self.x = self.f(self.x, u);
             F = self.F(self.x, u);
             self.P = F * self.P * F' + Q;
