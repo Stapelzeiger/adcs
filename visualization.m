@@ -33,15 +33,36 @@ omega_v = patch('EdgeColor', 'r');
 
 
 hold on
+rate_plt_nb_pts = 300;
 figure
-roll = animatedline('MaximumNumPoints',1000, 'Color','r');
-roll_estim = animatedline('MaximumNumPoints',1000, 'Color','r', 'LineStyle', ':');
+subplot(3,1,1)
+roll = animatedline('MaximumNumPoints',rate_plt_nb_pts, 'Color','r');
+roll_estim = animatedline('MaximumNumPoints',rate_plt_nb_pts, 'Color','r', 'LineStyle', ':');
+title('roll (X)')
+subplot(3,1,2)
+pitch = animatedline('MaximumNumPoints',rate_plt_nb_pts, 'Color','g');
+pitch_estim = animatedline('MaximumNumPoints',rate_plt_nb_pts, 'Color','g', 'LineStyle', ':');
+title('pitch (Y)')
+subplot(3,1,3)
+yaw = animatedline('MaximumNumPoints',rate_plt_nb_pts, 'Color','b');
+yaw_estim = animatedline('MaximumNumPoints',rate_plt_nb_pts, 'Color','b', 'LineStyle', ':');
+title('yaw (Z)')
+
+
 figure
-pitch = animatedline('MaximumNumPoints',1000, 'Color','g');
-pitch_estim = animatedline('MaximumNumPoints',1000, 'Color','g', 'LineStyle', ':');
-figure
-yaw = animatedline('MaximumNumPoints',1000, 'Color','b');
-yaw_estim = animatedline('MaximumNumPoints',1000, 'Color','b', 'LineStyle', ':');
+subplot(2,1,1)
+attitude_error = animatedline('MaximumNumPoints',rate_plt_nb_pts, 'Color','b');
+attitude_error_stddev = animatedline('MaximumNumPoints',rate_plt_nb_pts, 'Color','r');
+title('attitude error')
+legend('error', 'standard deviation')
+ylim([0, 0.5])
+subplot(2,1,2)
+rate_error = animatedline('MaximumNumPoints',rate_plt_nb_pts, 'Color','b');
+rate_error_stddev = animatedline('MaximumNumPoints',rate_plt_nb_pts, 'Color','r');
+title('rate error')
+legend('error', 'standard deviation')
+ylim([0, 10])
+
 
 figure
 P_image = imagesc(k.K.P, [-0.01 0.01]);
@@ -49,11 +70,6 @@ colormap(jet(100))
 colorbar
 
 for t = 0:delta_t:60
-    b.update([0; 0; 0], delta_t);
-    k.update();
-    k.measure(b.measureVector([0; 0; 1], 0.1), ...
-              b.measureVector([0; 1; 0], 0.1))
-
     omega = b.getRate;
     Lb = b.getInertia * omega;
     L = rotate_by_quaternion(Lb, b.getAttitude);
@@ -74,6 +90,20 @@ for t = 0:delta_t:60
     addpoints(yaw,t,body_rate(3));
     addpoints(yaw_estim,t,kalman_rate(3));
 
+    state_var = diag(k.K.P);
+    rate_err = norm(b.getRate() - k.get_omega);
+    att_err = quatmult(b.getAttitude, quatconj(k.get_attitude));
+    att_err = norm(att_err(2:4));
+    addpoints(attitude_error,t, att_err);
+    addpoints(attitude_error_stddev,t, sqrt(max(state_var(1:4))));
+    addpoints(rate_error,t, rate_err);
+    addpoints(rate_error_stddev,t, sqrt(max(state_var(5:7))));
+
     set(P_image,'CData',k.K.P)
     pause(delta_t);
+
+    b.update([0; 0; 0], delta_t);
+    k.update();
+    k.measure(b.measureVector([0; 0; 1], 0.1), ...
+              b.measureVector([0; 1; 0], 0.1))
 end
