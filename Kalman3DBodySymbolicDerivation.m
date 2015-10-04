@@ -48,7 +48,7 @@ f = dx + x
 F = jacobian(f, x)
 
 
-h1 = rotate_by_quaternion([1; 0; 0], quatconj(q));
+h1 = rotate_by_quaternion([0; 0; 1], quatconj(q));
 h2 = rotate_by_quaternion([0; 1; 0], quatconj(q));
 
 h = [h1; h2]
