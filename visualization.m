@@ -51,11 +51,8 @@ colorbar
 for t = 0:delta_t:60
     b.update([0; 0; 0], delta_t);
     k.update();
-    if t < 2
-        k.measure(b.measureVector([0; 0; 1], 0.1), ...
-                  b.measureVector([0; 1; 0], 0.1))
-        t
-    end
+    k.measure(b.measureVector([0; 0; 1], 0.1), ...
+              b.measureVector([0; 1; 0], 0.1))
 
     omega = b.getRate;
     Lb = b.getInertia * omega;
