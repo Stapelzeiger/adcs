@@ -6,10 +6,10 @@ close all;
 inerta = [1, 2, 3];
 % inerta = [1.1, 1.9, 3.03];
 b = RotationBody3D(diag(inerta));
-b.setRate([0.1; 10; 0]);
+b.setRate([0.01; 1; 0]);
 
 
-delta_t = 0.001;
+delta_t = 0.01;
 k = Kalman3DBody(delta_t, inerta);
 
 
@@ -73,7 +73,7 @@ redraw_cntdwn = 0.1;
 for t = 0:delta_t:60
     redraw_cntdwn = redraw_cntdwn - delta_t;
     if (redraw_cntdwn <= 0)
-        redraw_cntdwn = 0.01;
+        redraw_cntdwn = 0.1;
 
         omega = b.getRate;
         Lb = b.getInertia * omega;
