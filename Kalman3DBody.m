@@ -20,27 +20,25 @@ classdef Kalman3DBody < handle
             h_ = @(x_) h__(x_(1), x_(2), x_(3), x_(4), x_(5), x_(6), x_(7));
             H__ = matlabFunction(subs(H, dt, delta_t), 'Vars', x);
             H_ = @(x_) H__(x_(1), x_(2), x_(3), x_(4), x_(5), x_(6), x_(7));
-            obj.Q = diag([ones(1, 4)*0.001^2, ones(1, 3)*0.001^2]);
-            obj.R = eye(6)*0.1^2;
+            obj.Q = eye(7);
+            obj.R = eye(6);
             obj.K = ExtendedKalmanFilter(7, f_, F_, h_, H_);
             obj.delta_t = delta_t;
-            P_init = diag([ones(1, 4)*3^2, ones(1, 3)*10^2]);
-            obj.K.reset([cos(pi/4); 0; 0; sin(pi/4); 0; 0; 0], P_init)
         end
 
-        function normalize(self)
+        function renormalize_quaternion(self)
             n = norm(self.K.x(1:4));
             self.K.x(1:4) = self.K.x(1:4)/n;
         end
 
         function update(self)
             self.K.predict(0, self.Q)
-            self.normalize()
+            self.renormalize_quaternion()
         end
 
         function measure(self, E1, E2)
             self.K.measure([E1; E2], self.R)
-            self.normalize()
+            self.renormalize_quaternion()
         end
 
         function att = get_attitude(self)
