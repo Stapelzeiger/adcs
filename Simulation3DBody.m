@@ -31,10 +31,12 @@ classdef Simulation3DBody < handle
         function update(self)
             torque = randn(3,1) * self.perturbation_torque_stddev;
             self.body.update(torque, self.delta_t);
-            self.kalman.update();
+            self.kalman.predict();
+            % self.kalman.K.P = eye(7)*0.1^2;
             self.kalman.measure(...
                     self.body.measureVector([0; 0; 1], self.measurement_noise_stddev), ...
                     self.body.measureVector([0; 1; 0], self.measurement_noise_stddev));
+            % self.kalman.K.P = eye(7)*0.1^2;
         end
     end
 end

@@ -8,6 +8,8 @@ classdef ExtendedKalmanFilter < handle
         F
         h
         H
+        % tune output
+        K
     end
 
     methods
@@ -30,10 +32,10 @@ classdef ExtendedKalmanFilter < handle
             y = z - self.h(self.x);
             H = self.H(self.x);
             S = H * self.P * H' + R;
-            K = self.P * H' / S;
-            self.x = self.x + K * y;
+            self.K = self.P * H' / S;
+            self.x = self.x + self.K * y;
             n = length(self.P);
-            self.P = (eye(n) - K * H) * self.P;
+            self.P = (eye(n) - self.K * H) * self.P;
         end
 
         function reset(self, x, P)

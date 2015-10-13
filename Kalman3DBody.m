@@ -31,7 +31,7 @@ classdef Kalman3DBody < handle
             self.K.x(1:4) = self.K.x(1:4)/n;
         end
 
-        function update(self)
+        function predict(self)
             self.K.predict(0, self.Q)
             self.renormalize_quaternion()
         end

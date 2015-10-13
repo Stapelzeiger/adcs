@@ -74,12 +74,19 @@ figure
 P_image = imagesc(sim.kalman.K.P, [-0.001 0.001]);
 colormap(jet(100))
 colorbar
+title('P')
+
+figure
+K_image = imagesc(zeros(7, 6), [-1 1]*0.001);
+colormap(jet(100))
+colorbar
+title('K')
 
 redraw_cntdwn = 0;
 for t = 0:delta_t:60
     redraw_cntdwn = redraw_cntdwn - delta_t;
     if (redraw_cntdwn <= 0)
-        redraw_cntdwn = delta_t;
+        redraw_cntdwn = delta_t * 1;
 
         omega = sim.body.getRate;
         Lb = sim.body.getInertia * omega;
@@ -111,6 +118,7 @@ for t = 0:delta_t:60
         addpoints(rate_error_stddev,t, sqrt(max(state_var(5:7))));
 
         set(P_image,'CData',sim.kalman.K.P)
+        set(K_image,'CData',sim.kalman.K.K)
         % pause(delta_t);
         drawnow
     end
