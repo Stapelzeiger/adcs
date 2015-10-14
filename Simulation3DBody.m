@@ -6,6 +6,10 @@ classdef Simulation3DBody < handle
         delta_t
         measurement_noise_stddev
         perturbation_torque_stddev
+
+        inspect_torque = [0; 0; 0]
+        inspect_z1 = [0; 0; 0]
+        inspect_z2 = [0; 0; 0]
     end
 
     methods
@@ -31,12 +35,15 @@ classdef Simulation3DBody < handle
         function update(self)
             torque = randn(3,1) * self.perturbation_torque_stddev;
             self.body.update(torque, self.delta_t);
+            self.inspect_torque = torque;
             self.kalman.predict();
             % self.kalman.K.P = eye(7)*0.1^2;
-            self.kalman.measure(...
-                    self.body.measureVector([0; 0; 1], self.measurement_noise_stddev), ...
-                    self.body.measureVector([0; 1; 0], self.measurement_noise_stddev));
+            z1 = self.body.measureVector([0; 0; 1], self.measurement_noise_stddev);
+            z2 = self.body.measureVector([0; 1; 0], self.measurement_noise_stddev);
+            self.kalman.measure(z1, z2);
             % self.kalman.K.P = eye(7)*0.1^2;
+            self.inspect_z1 = z1;
+            self.inspect_z2 = z2;
         end
     end
 end

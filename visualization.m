@@ -1,12 +1,12 @@
 clf;
-close all;
+% close all;
 
 
 inertia = [1, 2, 3];
 delta_t = 0.01;
 initial_rate = [0.01; 1; 0];
-measurement_noise = 0.5; % standard deviation of noise on vector components
-perturbation_torque = 0;
+measurement_noise = 0.1; % standard deviation of noise on vector components
+perturbation_torque = 1;
 
 kalman_Q = diag([ones(1, 4)*0.001^2, ones(1, 3)*0.001^2]);
 kalman_R = eye(6)*measurement_noise^2;
@@ -19,12 +19,14 @@ sim = Simulation3DBody(delta_t, inertia, initial_rate, measurement_noise, pertur
 sim.setKalmanCovariancesQR(kalman_Q, kalman_R);
 sim.setKalmanInitialState([kalman_initial_att; kalman_initial_rate], kalman_initial_P);
 
+figure(1)
+clf
 axis equal;
 grid on;
 xlabel('X','FontSize',18, 'Color','r');
 ylabel('Y','FontSize',18, 'Color','g')
 zlabel('Z','FontSize',18, 'Color','b')
-h = gca; % handle of the figure
+h = gca;
 h.XLim = [-3 9];
 h.YLim = [-3 3];
 h.ZLim = [-3 3];
@@ -36,11 +38,14 @@ body_plot = patch('FaceColor', 'flat');
 estim_plot = patch('FaceColor', 'flat'); %, 'FaceAlpha',.7
 ang_mom_v = patch('EdgeColor', 'c');
 omega_v = patch('EdgeColor', 'r');
+z1_v = patch('EdgeColor', 'b');
+z2_v = patch('EdgeColor', 'b');
 
 
 hold on
 rate_plt_nb_pts = 300;
-figure
+figure(2)
+clf
 subplot(3,1,1)
 roll = animatedline('MaximumNumPoints',rate_plt_nb_pts, 'Color','r');
 roll_estim = animatedline('MaximumNumPoints',rate_plt_nb_pts, 'Color','r', 'LineStyle', ':');
@@ -55,7 +60,8 @@ yaw_estim = animatedline('MaximumNumPoints',rate_plt_nb_pts, 'Color','b', 'LineS
 title('yaw rate')
 
 
-figure
+figure(3)
+clf
 subplot(2,1,1)
 attitude_error = animatedline('MaximumNumPoints',rate_plt_nb_pts, 'Color','b');
 attitude_error_stddev = animatedline('MaximumNumPoints',rate_plt_nb_pts, 'Color','r');
@@ -70,23 +76,33 @@ legend('error', 'standard deviation')
 ylim([0, 1])
 
 
-figure
+figure(4)
+clf
 P_image = imagesc(sim.kalman.K.P, [-0.001 0.001]);
 colormap(jet(100))
 colorbar
 title('P')
 
-figure
+figure(5)
+clf
 K_image = imagesc(zeros(7, 6), [-1 1]*0.001);
 colormap(jet(100))
 colorbar
 title('K')
 
+figure(6)
+clf
+eigenv_plot = plot([1],'o');
+title('Eigenvalues of F - KH')
+xlim([0, 1])
+ylim([-1, 1])
+
+
 redraw_cntdwn = 0;
 for t = 0:delta_t:60
     redraw_cntdwn = redraw_cntdwn - delta_t;
     if (redraw_cntdwn <= 0)
-        redraw_cntdwn = delta_t * 1;
+        redraw_cntdwn = delta_t * 10;
 
         omega = sim.body.getRate;
         Lb = sim.body.getInertia * omega;
@@ -95,6 +111,10 @@ for t = 0:delta_t:60
 
         omega_i = rotate_by_quaternion(omega, sim.body.getAttitude);
         omega_v.set('XData', [0, omega_i(1)], 'YData', [0, omega_i(2)], 'ZData', [0, omega_i(3)]);
+        z1 = 10*rotate_by_quaternion(sim.inspect_z1, sim.kalman.get_attitude);
+        z2 = 10*rotate_by_quaternion(sim.inspect_z2, sim.kalman.get_attitude);
+        z1_v.set('XData', [0, z1(1)] + 6, 'YData', [0, z1(2)], 'ZData', [0, z1(3)]);
+        z2_v.set('XData', [0, z2(1)] + 6, 'YData', [0, z2(2)], 'ZData', [0, z2(3)]);
 
         cube_plot(body_plot,[0,0,0],inertia(1),inertia(2),inertia(3), sim.body.getAttitude);
         cube_plot(estim_plot,[6,0,0],inertia(1),inertia(2),inertia(3), sim.kalman.get_attitude);
@@ -118,7 +138,11 @@ for t = 0:delta_t:60
         addpoints(rate_error_stddev,t, sqrt(max(state_var(5:7))));
 
         set(P_image,'CData',sim.kalman.K.P)
-        set(K_image,'CData',sim.kalman.K.K)
+        set(K_image,'CData',sim.kalman.K.inspect_K)
+
+        e = eig(sim.kalman.K.inspect_F - sim.kalman.K.inspect_K * sim.kalman.K.inspect_H);
+        set(eigenv_plot, 'XData', real(e), 'YData', imag(e))
+
         % pause(delta_t);
         drawnow
     end
