@@ -1,15 +1,15 @@
 
 % omega
-syms w1 w2 w3
+syms w1 w2 w3 real
 w = [w1; w2; w3];
 
 % attitude quaternion
-syms q1 q2 q3 q4
+syms q1 q2 q3 q4 real
 q = [q1; q2; q3; q4];
 % q = [sqrt(1 - q2^2 - q3^2 - q4^2); q2; q3; q4];
 
 % inertia tensor
-syms I11 I22 I33 I12 I23 I13
+syms I11 I22 I33 I12 I23 I13 real
 % I = [I11, I12, I13;
 %      I12, I22, I23;
 %      I13, I23, I33];
@@ -19,7 +19,7 @@ I = [I11, 0, 0;
 I_inv = inv(I);
 
 % external torque
-syms t1 t2 t3
+syms t1 t2 t3 real
 % t = [t1; t2; t3];
 t = [0; 0; 0];
 
@@ -32,7 +32,7 @@ qdot = 1/2 * quatmult(q, [0; w])
 wdot = I_inv * (t - cross(w, I*w))
 
 % using euler integration : dx = x_dot * dt
-syms dt
+syms dt real
 dq = qdot * dt;
 dw = wdot * dt;
 dx = [dq; dw]
