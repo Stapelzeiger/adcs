@@ -29,9 +29,12 @@ Kalman filter:
  - `ExtendedKalmanFilter.m` : generic EKF implementation
  - `KalmanFilter.m` : generic KF implementation
 
- - `Kalman3DBody.m` : simple EKF for 3D body assuming constant momentum
- - `Kalman3DBodySymbolicDerivation.m` : symbolic derivations for the above
- - `Kalman3DBodyErrorQuatSymbolicDerivation.m` : WIP
+ - `EKF3DConstMomentum.m` : simple EKF for 3D body assuming constant momentum
+ - `EKF3DConstMomentumSymbolicDerivation.m` : symbolic derivations for the above
+ - `MEKF3DConstMomentum.m` : Multiplicative EKF with constant momentum model
+ - `MEKF3DConstMomentumSymbolicDerivation.m` : symbolic derivations for the above
+ - `MEKF3DGyro.m` : Multiplicative EKF with gyroscope input
+ - `MEKF3DGyroSymbolicDerivation.m` : symbolic derivations for the above
 
 Simulation:
 

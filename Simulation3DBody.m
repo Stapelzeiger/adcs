@@ -20,7 +20,7 @@ classdef Simulation3DBody < handle
 
             obj.body = RotationBody3D(diag(inertia));
             obj.body.setRate(rate);
-            obj.kalman = Kalman3DBody(delta_t, inertia);
+            obj.kalman = EKF3DConstMomentum(delta_t, inertia);
         end
 
         function setKalmanCovariancesQR(self, Q, R)

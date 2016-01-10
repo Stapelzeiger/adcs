@@ -1,4 +1,4 @@
-classdef Kalman3DBody < handle
+classdef EKF3DConstMomentum < handle
     properties
         delta_t
         K
@@ -7,10 +7,10 @@ classdef Kalman3DBody < handle
     end
 
     methods
-        function obj = Kalman3DBody(delta_t, inertia)
+        function obj = EKF3DConstMomentum(delta_t, inertia)
             % State vector: [q1 q2, q3, q4, omega1, omega2, omega3]
             % measurement z = [E1_1, E1_2, E1_3, E2_1, E2_2, E2_3]
-            Kalman3DBodySymbolicDerivation
+            EKF3DConstMomentumSymbolicDerivation
             f__ = matlabFunction(subs(f, [dt; I11; I22; I33], [delta_t; inertia']), 'Vars', x);
             f_ = @(x_, u) f__(x_(1), x_(2), x_(3), x_(4), x_(5), x_(6), x_(7));
             % f_ = @(x_, u) state_update(x_, delta_t); % use ode45, INERTIA IS HARDCODED!!!
