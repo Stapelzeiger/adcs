@@ -11,3 +11,6 @@ This module is written to gain an understanding of how a Kalman filter for attit
 There are unit tests for all the essential components.
 To run the unit tests simply run the matlab command ```runtests```.
 
+## run the simulation with visualization
+
+just run the script `visualization.m` in matlab
