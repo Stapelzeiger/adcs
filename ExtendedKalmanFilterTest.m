@@ -5,16 +5,7 @@ classdef ExtendedKalmanFilterTest < matlab.unittest.TestCase
 
     methods (TestMethodSetup)
         function init(testCase)
-            % oscillator
-            % x_dot = [x(2); -x(1)^3 + u]
-            % z = x(2)^2
-            syms x1 x2 u
-            dt = 0.1;
-            f = @(x, u) x + dt * [x(2); -x(1)^3 + u];
-            F = @(x, u) subs(jacobian(f([x1; x2], u), [x1; x2]), [x1; x2], [x(1); x(2)]);
-            h = @(x) [x(2)^2];
-            H = @(x) subs(jacobian(h([x1; x2]), [x1; x2]), [x1; x2], [x(1); x(2)]);
-            testCase.Kalman = ExtendedKalmanFilter(2, f, F, h, H);
+            testCase.Kalman = ExtendedKalmanFilter(2);
         end
     end
 
@@ -31,31 +22,32 @@ classdef ExtendedKalmanFilterTest < matlab.unittest.TestCase
         end
 
         function predict(testCase)
-            dt = 0.1;
-            u = 0.3;
+            f = @(x) [1; 2];
+            Phi = [1, 2; 0, 3];
             Q = eye(2)*0.1;
-            testCase.Kalman.predict(u, Q);
 
-            F = testCase.Kalman.F([0; 0], 0);
-            testCase.verifyEqual(testCase.Kalman.x, dt*[0; u])
-            testCase.verifyEqual(testCase.Kalman.P, F * eye(2) * F' + Q)
+            testCase.Kalman.predict(f, Phi, Q);
+
+            testCase.verifyEqual(testCase.Kalman.x, f([0; 0]))
+            testCase.verifyEqual(testCase.Kalman.P, Phi * eye(2) * Phi' + Q)
         end
 
         function measure(testCase)
+            x0 = [1; 2];
+            P0 = diag([0.1, 0.2]);
+            testCase.Kalman.reset(x0, P0);
             z = 1;
             R = 0.1;
-            x = [1; 2];
-            P = diag([0.1, 0.2]);
-            testCase.Kalman.reset(x, P);
+            h = @(x) [x(2)^2];
+            H = [0, 2*x0(2)];
 
-            testCase.Kalman.measure(z, R);
+            testCase.Kalman.measure(z, R, h, H);
 
-            y = z - testCase.Kalman.h(x);
-            H = testCase.Kalman.H(x);
-            S = H * P * H' + R;
-            K = P * H' / S;
-            testCase.verifyEqual(testCase.Kalman.x, x + K * y);
-            testCase.verifyEqual(testCase.Kalman.P, (eye(2) - K * H) * P);
+            y = z - h(x0);
+            S = H * P0 * H' + R;
+            K = P0 * H' / S;
+            testCase.verifyEqual(testCase.Kalman.x, x0 + K * y);
+            testCase.verifyEqual(testCase.Kalman.P, (eye(2) - K * H) * P0);
         end
     end
 end
