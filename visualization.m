@@ -140,7 +140,7 @@ for t = 0:delta_t:60
         set(P_image,'CData',sim.kalman.K.P)
         set(K_image,'CData',sim.kalman.K.inspect_K)
 
-        e = eig(sim.kalman.K.inspect_F - sim.kalman.K.inspect_K * sim.kalman.K.inspect_H);
+        e = eig(sim.kalman.K.inspect_Phi - sim.kalman.K.inspect_K * sim.kalman.K.inspect_H);
         set(eigenv_plot, 'XData', real(e), 'YData', imag(e))
 
         % pause(delta_t);

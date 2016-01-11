@@ -2,6 +2,9 @@ classdef ExtendedKalmanFilter < handle
     properties
         x
         P
+        inspect_K
+        inspect_Phi
+        inspect_H
     end
 
     methods
@@ -13,6 +16,7 @@ classdef ExtendedKalmanFilter < handle
         function predict(self, f, Phi, Q)
             self.x = f(self.x);
             self.P = Phi * self.P * Phi' + Q;
+            self.inspect_Phi = Phi;
         end
 
         function measure(self, z, R, h, H)
@@ -22,6 +26,8 @@ classdef ExtendedKalmanFilter < handle
             self.x = self.x + K * y;
             n = length(self.P);
             self.P = (eye(n) - K * H) * self.P;
+            self.inspect_H = H;
+            self.inspect_K = K;
         end
 
         function reset(self, x, P)

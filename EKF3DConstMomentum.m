@@ -4,6 +4,10 @@ classdef EKF3DConstMomentum < handle
         K
         Q
         R
+        f
+        Phi
+        h
+        H
     end
 
     methods
@@ -12,17 +16,17 @@ classdef EKF3DConstMomentum < handle
             % measurement z = [E1_1, E1_2, E1_3, E2_1, E2_2, E2_3]
             EKF3DConstMomentumSymbolicDerivation
             f__ = matlabFunction(subs(f, [dt; I11; I22; I33], [delta_t; inertia']), 'Vars', x);
-            f_ = @(x_, u) f__(x_(1), x_(2), x_(3), x_(4), x_(5), x_(6), x_(7));
+            obj.f = @(x_, u) f__(x_(1), x_(2), x_(3), x_(4), x_(5), x_(6), x_(7));
             % f_ = @(x_, u) state_update(x_, delta_t); % use ode45, INERTIA IS HARDCODED!!!
             F__ = matlabFunction(subs(F, [dt; I11; I22; I33], [delta_t; inertia']), 'Vars', x);
-            F_ = @(x_, u) F__(x_(1), x_(2), x_(3), x_(4), x_(5), x_(6), x_(7));
+            obj.Phi = @(x_, u) F__(x_(1), x_(2), x_(3), x_(4), x_(5), x_(6), x_(7));
             h__ = matlabFunction(subs(h, dt, delta_t), 'Vars', x);
-            h_ = @(x_) h__(x_(1), x_(2), x_(3), x_(4), x_(5), x_(6), x_(7));
+            obj.h = @(x_) h__(x_(1), x_(2), x_(3), x_(4), x_(5), x_(6), x_(7));
             H__ = matlabFunction(subs(H, dt, delta_t), 'Vars', x);
-            H_ = @(x_) H__(x_(1), x_(2), x_(3), x_(4), x_(5), x_(6), x_(7));
+            obj.H = @(x_) H__(x_(1), x_(2), x_(3), x_(4), x_(5), x_(6), x_(7));
             obj.Q = eye(7);
             obj.R = eye(6);
-            obj.K = ExtendedKalmanFilter(7, f_, F_, h_, H_);
+            obj.K = ExtendedKalmanFilter(7);
             obj.delta_t = delta_t;
         end
 
@@ -32,12 +36,12 @@ classdef EKF3DConstMomentum < handle
         end
 
         function predict(self)
-            self.K.predict(0, self.Q)
+            self.K.predict(self.f, self.Phi(self.K.x), self.Q)
             self.renormalize_quaternion()
         end
 
         function measure(self, E1, E2)
-            self.K.measure([E1; E2], self.R)
+            self.K.measure([E1; E2], self.R, self.h, self.H(self.K.x))
             self.renormalize_quaternion()
         end
 

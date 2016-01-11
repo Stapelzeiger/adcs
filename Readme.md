@@ -9,7 +9,7 @@ This module is written to gain an understanding of how a Kalman filter for attit
 ## Unit Tests
 
 There are unit tests for all the essential components.
-To run the unit tests simply run the matlab command ```runtests```.
+To run the unit tests simply run the matlab command ```clear classes; runtests```.
 
 ## run the simulation with visualization
 
@@ -28,6 +28,7 @@ Kalman filter:
 
  - `ExtendedKalmanFilter.m` : generic EKF implementation
  - `KalmanFilter.m` : generic KF implementation
+ (there is no constistent distinction in variable naming between F and Phi, this should be changed someday)
 
  - `EKF3DConstMomentum.m` : simple EKF for 3D body assuming constant momentum
  - `EKF3DConstMomentumSymbolicDerivation.m` : symbolic derivations for the above
