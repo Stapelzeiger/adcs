@@ -61,14 +61,14 @@ classdef MEKF3DGyro < handle
             z = Proj * b_to_m * measured_b;
             h = @(x) [0; 0]; % expected measurement is zero
             Ha = Proj * b_to_m * cross_prod_matrix(expected_b);
-            H = [zeros(2, 3), Ha];
+            H = [Ha, zeros(2, 3)];
             self.K.measure(z, R, h, H)
         end
 
 
         function measure(self, E1, E2)
-            % self.measure_vect([1; 0; 0], E1, self.R)
-            % self.measure_vect([0; 1; 0], E2, self.R)
+            self.measure_vect([0; 0; 1], E1, self.R)
+            self.measure_vect([0; 1; 0], E2, self.R)
             self.attitude_error_transfer_to_reference()
         end
 
