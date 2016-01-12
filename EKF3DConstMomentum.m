@@ -11,7 +11,7 @@ classdef EKF3DConstMomentum < handle
     end
 
     methods
-        function obj = EKF3DConstMomentum(delta_t, inertia)
+        function obj = EKF3DConstMomentum(delta_t, inertia, Q, R)
             % State vector: [q1 q2, q3, q4, omega1, omega2, omega3]
             % measurement z = [E1_1, E1_2, E1_3, E2_1, E2_2, E2_3]
             EKF3DConstMomentumSymbolicDerivation
@@ -24,8 +24,8 @@ classdef EKF3DConstMomentum < handle
             obj.h = @(x_) h__(x_(1), x_(2), x_(3), x_(4), x_(5), x_(6), x_(7));
             H__ = matlabFunction(subs(H, dt, delta_t), 'Vars', x);
             obj.H = @(x_) H__(x_(1), x_(2), x_(3), x_(4), x_(5), x_(6), x_(7));
-            obj.Q = eye(7);
-            obj.R = eye(6);
+            obj.Q = Q;
+            obj.R = R;
             obj.K = ExtendedKalmanFilter(7);
             obj.delta_t = delta_t;
         end
@@ -35,7 +35,7 @@ classdef EKF3DConstMomentum < handle
             self.K.x(1:4) = self.K.x(1:4)/n;
         end
 
-        function predict(self)
+        function predict(self, unused_gyro)
             self.K.predict(self.f, self.Phi(self.K.x), self.Q)
             self.renormalize_quaternion()
         end

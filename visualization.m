@@ -8,16 +8,7 @@ initial_rate = [0.01; 1; 0];
 measurement_noise = 0.1; % standard deviation of noise on vector components
 perturbation_torque = 1;
 
-kalman_Q = diag([ones(1, 4)*0.001^2, ones(1, 3)*0.001^2]);
-kalman_R = eye(6)*measurement_noise^2;
-
-kalman_initial_P = diag([ones(1, 4)*3^2, ones(1, 3)*10^2]);
-kalman_initial_att = [cos(pi/4); 0; 0; sin(pi/4)];
-kalman_initial_rate =  [0; 0; 0];
-
 sim = Simulation3DBody(delta_t, inertia, initial_rate, measurement_noise, perturbation_torque);
-sim.setKalmanCovariancesQR(kalman_Q, kalman_R);
-sim.setKalmanInitialState([kalman_initial_att; kalman_initial_rate], kalman_initial_P);
 
 figure(1)
 clf
@@ -133,15 +124,16 @@ for t = 0:delta_t:60
         att_err = quatmult(sim.body.getAttitude, quatconj(sim.kalman.get_attitude));
         att_err = norm(att_err(2:4));
         addpoints(attitude_error,t, att_err);
-        addpoints(attitude_error_stddev,t, sqrt(max(state_var(1:4))));
+        % addpoints(attitude_error_stddev,t, sqrt(max(state_var(1:4))));
         addpoints(rate_error,t, rate_err);
-        addpoints(rate_error_stddev,t, sqrt(max(state_var(5:7))));
+        % addpoints(rate_error_stddev,t, sqrt(max(state_var(5:7))));
 
+        sim.kalman.K.P
         set(P_image,'CData',sim.kalman.K.P)
         set(K_image,'CData',sim.kalman.K.inspect_K)
 
-        e = eig(sim.kalman.K.inspect_Phi - sim.kalman.K.inspect_K * sim.kalman.K.inspect_H);
-        set(eigenv_plot, 'XData', real(e), 'YData', imag(e))
+        % e = eig(sim.kalman.K.inspect_Phi - sim.kalman.K.inspect_K * sim.kalman.K.inspect_H);
+        % set(eigenv_plot, 'XData', real(e), 'YData', imag(e))
 
         % pause(delta_t);
         drawnow

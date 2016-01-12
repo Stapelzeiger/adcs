@@ -20,13 +20,25 @@ classdef Simulation3DBody < handle
 
             obj.body = RotationBody3D(diag(inertia));
             obj.body.setRate(rate);
-            obj.kalman = EKF3DConstMomentum(delta_t, inertia);
+
+            initial_estimated_att = [cos(pi/4); 0; 0; sin(pi/4)]; % some initial offset
+            initial_estimated_rate =  [0; 0; 0];
+
+            % const momentum kalman filter
+            Q = diag([ones(1, 4)*0.001^2, ones(1, 3)*0.001^2]);
+            R = eye(6)*measurement_noise_stddev^2;
+            x0 = [initial_estimated_att; initial_estimated_rate];
+            P0 = diag([ones(1, 4)*3^2, ones(1, 3)*10^2]);
+            ekf_cst_mom = EKF3DConstMomentum(delta_t, inertia, Q, R);
+            ekf_cst_mom.K.reset(x0, P0);
+
+            mekf_gyro = MEKF3DGyro(delta_t, eye(6)*0.00000001, eye(2));
+            mekf_gyro.set_attitude(initial_estimated_att);
+
+            % obj.kalman = ekf_cst_mom;
+            obj.kalman = mekf_gyro;
         end
 
-        function setKalmanCovariancesQR(self, Q, R)
-            self.kalman.Q = Q;
-            self.kalman.R = R;
-        end
 
         function setKalmanInitialState(self, x, P)
             self.kalman.K.reset(x, P);
@@ -36,12 +48,12 @@ classdef Simulation3DBody < handle
             torque = randn(3,1) * self.perturbation_torque_stddev;
             self.body.update(torque, self.delta_t);
             self.inspect_torque = torque;
-            self.kalman.predict();
-            % self.kalman.K.P = eye(7)*0.1^2;
+
+            gyro = self.body.measureRate(0.);
+            self.kalman.predict(gyro);
             z1 = self.body.measureVector([0; 0; 1], self.measurement_noise_stddev);
             z2 = self.body.measureVector([0; 1; 0], self.measurement_noise_stddev);
             self.kalman.measure(z1, z2);
-            % self.kalman.K.P = eye(7)*0.1^2;
             self.inspect_z1 = z1;
             self.inspect_z2 = z2;
         end
