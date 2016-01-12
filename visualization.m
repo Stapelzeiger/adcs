@@ -128,7 +128,6 @@ for t = 0:delta_t:60
         addpoints(rate_error,t, rate_err);
         % addpoints(rate_error_stddev,t, sqrt(max(state_var(5:7))));
 
-        sim.kalman.K.P
         set(P_image,'CData',sim.kalman.K.P)
         set(K_image,'CData',sim.kalman.K.inspect_K)
 
