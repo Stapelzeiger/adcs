@@ -2,14 +2,20 @@ clf;
 % close all;
 
 
+% setup simulation
+delta_t = 0.1; % [s]
+simulation_duration = 60; % [s]
+
 inertia = [1, 2, 3];
-delta_t = 0.01;
-initial_rate = [0.01; 1; 0];
-measurement_noise = 0.1; % standard deviation of noise on vector components
-perturbation_torque = 1;
+initial_rate = [0.01; 0.3; 0];
+measurement_noise = 4/180*pi; % standard deviation of noise on vector components
+perturbation_torque = 0.01;
 
 sim = Simulation3DBody(delta_t, inertia, initial_rate, measurement_noise, perturbation_torque);
 
+
+
+% setup 3D plot
 figure(1)
 clf
 axis equal;
@@ -33,8 +39,9 @@ z1_v = patch('EdgeColor', 'b');
 z2_v = patch('EdgeColor', 'b');
 
 
+% Setup rate plot
 hold on
-rate_plt_nb_pts = 300;
+rate_plt_nb_pts = 200;
 figure(2)
 clf
 subplot(3,1,1)
@@ -51,50 +58,32 @@ yaw_estim = animatedline('MaximumNumPoints',rate_plt_nb_pts, 'Color','b', 'LineS
 title('yaw rate')
 
 
+% setup error plot
 figure(3)
 clf
 subplot(2,1,1)
 attitude_error = animatedline('MaximumNumPoints',rate_plt_nb_pts, 'Color','b');
 attitude_error_stddev = animatedline('MaximumNumPoints',rate_plt_nb_pts, 'Color','r');
-title('attitude error')
+title('attitude error [deg]')
 legend('error', 'standard deviation')
-ylim([0, 0.5])
+ylim([0, 90])
 subplot(2,1,2)
 rate_error = animatedline('MaximumNumPoints',rate_plt_nb_pts, 'Color','b');
 rate_error_stddev = animatedline('MaximumNumPoints',rate_plt_nb_pts, 'Color','r');
-title('rate error')
+title('rate error [deg/s]')
 legend('error', 'standard deviation')
-ylim([0, 1])
+ylim([0, 50])
 
 
-figure(4)
-clf
-P_image = imagesc(sim.kalman.K.P, [-0.001 0.001]);
-colormap(jet(100))
-colorbar
-title('P')
 
-figure(5)
-clf
-K_image = imagesc(zeros(7, 6), [-1 1]*0.001);
-colormap(jet(100))
-colorbar
-title('K')
-
-figure(6)
-clf
-eigenv_plot = plot([1],'o');
-title('Eigenvalues of F - KH')
-xlim([0, 1])
-ylim([-1, 1])
-
-
+redraw_prescaler = 1; % update plots every nth iteration
 redraw_cntdwn = 0;
-for t = 0:delta_t:60
+for t = 0:delta_t:simulation_duration
     redraw_cntdwn = redraw_cntdwn - delta_t;
     if (redraw_cntdwn <= 0)
-        redraw_cntdwn = delta_t * 10;
+        redraw_cntdwn = delta_t * redraw_prescaler;
 
+        % 3D visualization update
         omega = sim.body.getRate;
         Lb = sim.body.getInertia * omega;
         L = rotate_by_quaternion(Lb, sim.body.getAttitude);
@@ -110,6 +99,7 @@ for t = 0:delta_t:60
         cube_plot(body_plot,[0,0,0],inertia(1),inertia(2),inertia(3), sim.body.getAttitude);
         cube_plot(estim_plot,[6,0,0],inertia(1),inertia(2),inertia(3), sim.kalman.get_attitude);
 
+        % rate plot update
         body_rate = sim.body.getRate();
         kalman_rate = sim.kalman.get_omega();
         addpoints(roll,t,body_rate(1));
@@ -119,24 +109,27 @@ for t = 0:delta_t:60
         addpoints(yaw,t,body_rate(3));
         addpoints(yaw_estim,t,kalman_rate(3));
 
+        % error plot update
         state_var = diag(sim.kalman.K.P);
         rate_err = norm(sim.body.getRate() - sim.kalman.get_omega);
+        rate_err_deg_per_sec = rate_err * 180 / pi;
         att_err = quatmult(sim.body.getAttitude, quatconj(sim.kalman.get_attitude));
-        att_err = norm(att_err(2:4));
-        addpoints(attitude_error,t, att_err);
-        % addpoints(attitude_error_stddev,t, sqrt(max(state_var(1:4))));
-        addpoints(rate_error,t, rate_err);
-        % addpoints(rate_error_stddev,t, sqrt(max(state_var(5:7))));
+        att_err = asin(norm(att_err(2:4)))*2;
+        att_err_deg = att_err * 180 / pi;
+        addpoints(attitude_error,t, att_err_deg);
+        att_err_stddev = sqrt(sum(state_var(1:3)))
+        att_err_stddev_deg = att_err_stddev * 180 / pi;
+        addpoints(attitude_error_stddev,t, att_err_stddev_deg);
+        addpoints(rate_error,t, rate_err_deg_per_sec);
+        rate_err_stddev = sqrt(sum(state_var(4:6)));
+        rate_err_stddev_deg_per_sec = rate_err_stddev * 180 / pi;
+        addpoints(rate_error_stddev,t, rate_err_stddev_deg_per_sec);
 
-        set(P_image,'CData',sim.kalman.K.P)
-        set(K_image,'CData',sim.kalman.K.inspect_K)
+        sim.kalman.K.P
 
-        % e = eig(sim.kalman.K.inspect_Phi - sim.kalman.K.inspect_K * sim.kalman.K.inspect_H);
-        % set(eigenv_plot, 'XData', real(e), 'YData', imag(e))
-
-        % pause(delta_t);
         drawnow
     end
 
+    pause(delta_t);
     sim.update()
 end

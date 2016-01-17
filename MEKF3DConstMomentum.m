@@ -38,14 +38,20 @@ classdef MEKF3DConstMomentum < handle
             if ang > 0.0000001
                 axis = omega / norm(omega);
             else
-                axis = [1; 0; 0];
+                axis = [1; 0; 0]; % todo use small angle approximation formula
             end
             delta_q_ref = [cos(ang/2); axis*sin(ang/2)];
             self.q_ref = quatmult(self.q_ref, delta_q_ref);
 
-            Phi = eye(6) + self.delta_t * self.F(self.K.x);
-            % todo compute sampled Q from phi, Q, G
-            Qs = self.G*self.Q*self.G';
+            F = self.F(self.K.x);
+            % Phi = eye(6) + self.delta_t * self.F(self.K.x);
+            % Qs = self.G*self.Q*self.G';
+            A = [        -F, self.G*self.Q*self.G';
+                 zeros(6,6),     F'];
+            B = expm(A*self.delta_t);
+            Phi = B(7:12, 7:12)';
+            Qs = Phi * B(1:6, 7:12)
+
             f = @(x) x;
             self.K.predict(f, Phi, Qs)
             self.inspect_Phi = Phi;
