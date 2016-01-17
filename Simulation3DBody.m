@@ -21,7 +21,7 @@ classdef Simulation3DBody < handle
             obj.body = RotationBody3D(diag(inertia));
             obj.body.setRate(rate);
 
-            ang = pi/10; % some initial offset
+            ang = pi/2; % some initial offset
             initial_estimated_att = [cos(ang/2); 0; 0; sin(ang/2)];
             initial_estimated_rate =  [0; 0; 0];
 
@@ -40,15 +40,15 @@ classdef Simulation3DBody < handle
             mekf_gyro.set_attitude(initial_estimated_att);
 
             % const momentum multiplicative kalman filter
-            Q = eye(3)*0.01^2;
+            Q = eye(3)*0.05^2;
             R = eye(2)*measurement_noise_stddev^2;
             mekf_cst_mom = MEKF3DConstMomentum(delta_t, Q, R, inertia);
             mekf_cst_mom.set_attitude(initial_estimated_att);
             mekf_cst_mom.K.reset(zeros(6,1), eye(6)*1000^2);
 
             % obj.kalman = ekf_cst_mom;
-            % obj.kalman = mekf_gyro;
-            obj.kalman = mekf_cst_mom;
+            obj.kalman = mekf_gyro;
+            % obj.kalman = mekf_cst_mom;
         end
 
 

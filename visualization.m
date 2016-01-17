@@ -117,15 +117,13 @@ for t = 0:delta_t:simulation_duration
         att_err = asin(norm(att_err(2:4)))*2;
         att_err_deg = att_err * 180 / pi;
         addpoints(attitude_error,t, att_err_deg);
-        att_err_stddev = sqrt(sum(state_var(1:3)))
+        att_err_stddev = sqrt(sum(state_var(1:3)));
         att_err_stddev_deg = att_err_stddev * 180 / pi;
         addpoints(attitude_error_stddev,t, att_err_stddev_deg);
         addpoints(rate_error,t, rate_err_deg_per_sec);
         rate_err_stddev = sqrt(sum(state_var(4:6)));
         rate_err_stddev_deg_per_sec = rate_err_stddev * 180 / pi;
         addpoints(rate_error_stddev,t, rate_err_stddev_deg_per_sec);
-
-        sim.kalman.K.P
 
         drawnow
     end

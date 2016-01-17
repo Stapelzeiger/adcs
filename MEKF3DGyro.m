@@ -10,6 +10,7 @@ classdef MEKF3DGyro < handle
         inspect_Phi
         inspect_K
         inspect_H
+        last_gyro
     end
 
     methods
@@ -23,13 +24,14 @@ classdef MEKF3DGyro < handle
             % h_ = @(x_) h__(x_(1), x_(2), x_(3), x_(4), x_(5), x_(6), x_(7));
             % H__ = matlabFunction(subs(H, dt, delta_t), 'Vars', x);
             % H_ = @(x_) H__(x_(1), x_(2), x_(3), x_(4), x_(5), x_(6), x_(7));
-            obj.G = G;
+            obj.G = double(G);
             obj.K = ExtendedKalmanFilter(6);
             obj.delta_t = delta_t;
+            obj.last_gyro = zeros(3,1);
         end
 
         function attitude_error_transfer_to_reference(self)
-            delta_q_of_a = [2; self.K.x(1); self.K.x(2); self.K.x(3)]; % unnormalized !
+            delta_q_of_a = [2; self.K.x(1); self.K.x(2); self.K.x(3)]; % unnormalized
             self.q_ref = quatmult(self.q_ref, delta_q_of_a);
             self.q_ref = self.q_ref / norm(self.q_ref); % normalize after multiplication
             self.K.x(1:3) = zeros(3, 1);
@@ -43,11 +45,17 @@ classdef MEKF3DGyro < handle
             delta_q_ref = [cos(ang/2); axis*sin(ang/2)];
             self.q_ref = quatmult(self.q_ref, delta_q_ref);
 
-            Phi = eye(6) + self.delta_t * self.F(self.K.x, gyro);
-            % todo compute sampled Q from phi, Q, G
+            F = self.F(self.K.x, gyro);
+            A = [        -F, self.G*self.Q*self.G';
+                 zeros(6,6),     F'];
+            B = expm(A*self.delta_t);
+            Phi = B(7:12, 7:12)';
+            Qs = Phi * B(1:6, 7:12);
+
             f = @(x) x;
-            self.K.predict(f, Phi, self.Q)
+            self.K.predict(f, Phi, Qs);
             self.inspect_Phi = Phi;
+            self.last_gyro = gyro;
         end
 
         function measure_vect(self, expected_i, measured_b, R)
@@ -81,7 +89,7 @@ classdef MEKF3DGyro < handle
         end
 
         function omega = get_omega(self)
-            omega = zeros(3,1); % this filter doesn't estimate omega
+            omega = self.last_gyro - self.K.x(4:6);
         end
     end
 end
