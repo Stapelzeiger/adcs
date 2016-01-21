@@ -45,7 +45,7 @@ classdef MEKF3DGyro < handle
                 axis = omega / norm(omega);
                 delta_q_ref = [cos(ang/2); axis*sin(ang/2)];
             else
-                delta_q_ref = [1; ang/2];
+                delta_q_ref = [1; omega*self.delta_t/2];
             end
             self.q_ref = quatmult(self.q_ref, delta_q_ref);
 

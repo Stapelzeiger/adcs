@@ -4,14 +4,27 @@ clf;
 
 % setup simulation
 delta_t = 0.1; % [s]
-simulation_duration = 60; % [s]
+simulation_duration = 60*5; % [s]
+speedup = 1;
 
-inertia = [1, 2, 3];
+inertia = [1, 1.1, 1.2];
 initial_rate = [0.01; 0.3; 0];
 measurement_noise = 4/180*pi; % standard deviation of noise on vector components
 perturbation_torque = 0.01;
 
-sim = Simulation3DBody(delta_t, inertia, initial_rate, measurement_noise, perturbation_torque);
+rate_gyro_white_noise_deg_p_s = 0.03; % [deg/s/sqrt(Hz)]
+rate_gyro_white_noise = rate_gyro_white_noise_deg_p_s/180*pi; % [rad/s/sqrt(Hz)]
+rate_gyro_bias_instability_deg_p_s = 0.003; % [deg/s]
+rate_gyro_bias_instability_time = 200; % [s]
+rate_gyro_bias_random_walk_white_noise = (rate_gyro_bias_instability_deg_p_s/sqrt(rate_gyro_bias_instability_time))/180*pi; % [rad/s/sqrt(Hz)]
+
+sim = Simulation3DBody(delta_t, ...
+                       inertia, ...
+                       initial_rate, ...
+                       measurement_noise, ...
+                       perturbation_torque, ...
+                       rate_gyro_white_noise, ...
+                       rate_gyro_bias_random_walk_white_noise);
 
 
 
@@ -127,7 +140,8 @@ for t = 0:delta_t:simulation_duration
 
         drawnow
     end
-
-    pause(delta_t);
+    if (speedup == 0)
+        pause(delta_t);
+    end
     sim.update()
 end

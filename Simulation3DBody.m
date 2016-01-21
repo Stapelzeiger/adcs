@@ -3,9 +3,12 @@ classdef Simulation3DBody < handle
         body
         kalman
 
+        gyro_bias
         delta_t
         measurement_noise_stddev
         perturbation_torque_stddev
+        rate_gyro_white_noise
+        rate_gyro_bias_white_noise
 
         inspect_torque = [0; 0; 0]
         inspect_z1 = [0; 0; 0]
@@ -13,13 +16,17 @@ classdef Simulation3DBody < handle
     end
 
     methods
-        function obj = Simulation3DBody(delta_t, inertia, rate, measurement_noise_stddev, perturbation_torque_stddev)
+        function obj = Simulation3DBody(delta_t, inertia, rate, measurement_noise_stddev, perturbation_torque_stddev, rate_gyro_white_noise, rate_gyro_bias_white_noise)
             obj.delta_t = delta_t;
             obj.measurement_noise_stddev = measurement_noise_stddev;
             obj.perturbation_torque_stddev = perturbation_torque_stddev;
+            obj.rate_gyro_white_noise = rate_gyro_white_noise;
+            obj.rate_gyro_bias_white_noise = rate_gyro_bias_white_noise;
 
             obj.body = RotationBody3D(diag(inertia));
             obj.body.setRate(rate);
+
+            obj.gyro_bias = randn(3, 1) * 2/180*pi; % initial gyro bias
 
             ang = pi/2; % some initial offset
             initial_estimated_att = [cos(ang/2); 0; 0; sin(ang/2)];
@@ -34,13 +41,13 @@ classdef Simulation3DBody < handle
             ekf_cst_mom.K.reset(x0, P0);
 
             % gyro multiplicative kalman filter
-            Q = eye(6)*0.0001^2;
+            Q = diag([ones(1, 3)*rate_gyro_white_noise^2, ones(1, 3)*rate_gyro_bias_white_noise^2]);
             R = eye(2)*measurement_noise_stddev^2;
             mekf_gyro = MEKF3DGyro(delta_t, Q, R);
             mekf_gyro.set_attitude(initial_estimated_att);
 
             % const momentum multiplicative kalman filter
-            Q = eye(3)*0.05^2;
+            Q = eye(3)*perturbation_torque_stddev^2;
             R = eye(2)*measurement_noise_stddev^2;
             mekf_cst_mom = MEKF3DConstMomentum(delta_t, Q, R, inertia);
             mekf_cst_mom.set_attitude(initial_estimated_att);
@@ -57,11 +64,15 @@ classdef Simulation3DBody < handle
         end
 
         function update(self)
-            torque = randn(3,1) * self.perturbation_torque_stddev;
+            torque = randn(3,1) * self.perturbation_torque_stddev * sqrt(1/self.delta_t);
             self.body.update(torque, self.delta_t);
             self.inspect_torque = torque;
 
-            gyro = self.body.measureRate(0.);
+            % gyroscope simulation: white noise + bias random walk
+            gyro = self.body.measureRate(self.rate_gyro_white_noise * sqrt(1/self.delta_t));
+            gyro = gyro + self.gyro_bias;
+            self.gyro_bias = self.gyro_bias + randn(3, 1) * self.rate_gyro_bias_white_noise * sqrt(1/self.delta_t);
+
             self.kalman.predict(gyro);
             z1 = self.body.measureVector([0; 0; 1], self.measurement_noise_stddev);
             z2 = self.body.measureVector([0; 1; 0], self.measurement_noise_stddev);

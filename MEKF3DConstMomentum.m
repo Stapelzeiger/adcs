@@ -39,7 +39,7 @@ classdef MEKF3DConstMomentum < handle
                 axis = omega / norm(omega);
                 delta_q_ref = [cos(ang/2); axis*sin(ang/2)];
             else
-                delta_q_ref = [1; ang/2];
+                delta_q_ref = [1; omega*self.delta_t/2];
             end
             self.q_ref = quatmult(self.q_ref, delta_q_ref);
 
@@ -50,7 +50,7 @@ classdef MEKF3DConstMomentum < handle
                  zeros(6,6),     F'];
             B = expm(A*self.delta_t);
             Phi = B(7:12, 7:12)';
-            Qs = Phi * B(1:6, 7:12)
+            Qs = Phi * B(1:6, 7:12);
 
             f = @(x) x;
             self.K.predict(f, Phi, Qs)
