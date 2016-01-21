@@ -58,4 +58,4 @@ F = jacobian(f, x);
 F = subs(F, [w; t; a], [w_hat; zeros(3,1); zeros(3,1)])
 G = jacobian(f, t)
 Q = diag(t)
-
+f_hat = subs(f, [t; a; w], [zeros(3,1); zeros(3,1); w_hat])

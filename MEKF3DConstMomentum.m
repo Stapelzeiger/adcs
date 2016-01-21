@@ -7,6 +7,7 @@ classdef MEKF3DConstMomentum < handle
         R
         G
         F
+        f
         inspect_Phi
         inspect_K
         inspect_H
@@ -18,7 +19,9 @@ classdef MEKF3DConstMomentum < handle
             obj.R = R;
             MEKF3DConstMomentumSymbolicDerivation
             F__ = matlabFunction(subs(F, I, diag(inertia)), 'Vars', {w_hat});
+            f__ = matlabFunction(subs(f_hat, I, diag(inertia)), 'Vars', {w_hat});
             obj.F = @(x_) F__(x_(4:6));
+            obj.f = @(t, x_) f__(x_(4:6)); % parameters for ode45
             obj.G = double(subs(G, I, diag(inertia)));
             obj.K = ExtendedKalmanFilter(6);
             obj.delta_t = delta_t;
@@ -52,7 +55,11 @@ classdef MEKF3DConstMomentum < handle
             Phi = B(7:12, 7:12)';
             Qs = Phi * B(1:6, 7:12);
 
-            f = @(x) x;
+            % integrate kalman state
+            [t, x]=ode45(self.f, [0 self.delta_t], self.K.x);
+            x_new = x(end, :)';
+            f = @(x) x_new;
+
             self.K.predict(f, Phi, Qs)
             self.inspect_Phi = Phi;
         end
