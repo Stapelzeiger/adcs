@@ -41,8 +41,12 @@ classdef MEKF3DGyro < handle
             % propagate reference
             omega = gyro - self.K.x(4:6);
             ang = norm(omega) * self.delta_t;
-            axis = omega / norm(omega);
-            delta_q_ref = [cos(ang/2); axis*sin(ang/2)];
+            if ang > 0.000001
+                axis = omega / norm(omega);
+                delta_q_ref = [cos(ang/2); axis*sin(ang/2)];
+            else
+                delta_q_ref = [1; ang/2];
+            end
             self.q_ref = quatmult(self.q_ref, delta_q_ref);
 
             F = self.F(self.K.x, gyro);

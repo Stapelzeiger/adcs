@@ -35,17 +35,17 @@ classdef MEKF3DConstMomentum < handle
             % propagate reference
             omega = self.K.x(4:6);
             ang = norm(omega) * self.delta_t;
-            if ang > 0.0000001
+            if ang > 0.000001
                 axis = omega / norm(omega);
+                delta_q_ref = [cos(ang/2); axis*sin(ang/2)];
             else
-                axis = [1; 0; 0]; % todo use small angle approximation formula
+                delta_q_ref = [1; ang/2];
             end
-            delta_q_ref = [cos(ang/2); axis*sin(ang/2)];
             self.q_ref = quatmult(self.q_ref, delta_q_ref);
 
             F = self.F(self.K.x);
             % Phi = eye(6) + self.delta_t * self.F(self.K.x);
-            % Qs = self.G*self.Q*self.G';
+            % Qs = self.G*self.Q*self.G' * self.delta_t;
             A = [        -F, self.G*self.Q*self.G';
                  zeros(6,6),     F'];
             B = expm(A*self.delta_t);
