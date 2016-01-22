@@ -20,8 +20,8 @@ filter_model = 'mekf_gyro' % one of 'mekf_cst_mom', 'mekf_gyro', 'basic'
 
 
 nb_runs = 5
-att_error_graphs = zeros(nb_runs, simulation_duration/delta_t);
-rate_error_graphs = zeros(nb_runs, simulation_duration/delta_t);
+att_errors = zeros(nb_runs, simulation_duration/delta_t);
+rate_errors = zeros(nb_runs, simulation_duration/delta_t);
 
 for run_i = 1:nb_runs
     sim = Simulation3DBody(filter_model, ...
@@ -56,13 +56,13 @@ figure
 semilogy(time, att_errors')
 hold on
 plot(time, ones(length(time), 1)*2, 'k--') % requirement: 2 deg
-title([strrep(filter_model, '_', ' ') ' attitude error [deg]'])
+% title([strrep(filter_model, '_', ' ') ' attitude error [deg]'])
 
 figure
 semilogy(time, rate_errors')
 hold on
 plot(time, ones(length(time), 1)*0.5, 'k--') % requirement: 0.5 deg/s
-title([strrep(filter_model, '_', ' ') ' rate error [deg/s]'])
+% title([strrep(filter_model, '_', ' ') ' rate error [deg/s]'])
 
 
 
