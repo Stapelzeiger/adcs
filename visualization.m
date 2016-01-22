@@ -10,7 +10,7 @@ speedup = 1;
 inertia = [1, 1.1, 1.2];
 initial_rate = [0.01; 0.3; 0];
 measurement_noise = 4/180*pi; % standard deviation of noise on vector components
-perturbation_torque = 0.01;
+perturbation_torque = 0.0001;
 
 rate_gyro_white_noise_deg_p_s = 0.03; % [deg/s/sqrt(Hz)]
 rate_gyro_white_noise = rate_gyro_white_noise_deg_p_s/180*pi; % [rad/s/sqrt(Hz)]
