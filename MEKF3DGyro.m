@@ -72,7 +72,11 @@ classdef MEKF3DGyro < handle
             expected_b = rotate_by_quaternion(expected_i, quatconj(self.q_ref));
             Proj = [0, 1, 0;
                     0, 0, 1];
-            z = Proj * b_to_m * measured_b;
+            %z = Proj * b_to_m * measured_b; % simple linear measurement
+            m = b_to_m * measured_b + [1; 0; 0];
+            m = m / norm(m);
+            z = m(2:3) / m(1) * 2; % improved nonlinear measurement
+
             h = @(x) [0; 0]; % expected measurement is zero
             Ha = Proj * b_to_m * cross_prod_matrix(expected_b);
             H = [Ha, zeros(2, 3)];
