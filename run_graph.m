@@ -3,7 +3,7 @@ delta_t = 0.1; % [s]
 simulation_duration = 120; % [s]
 
 % inertia = [1, 1.1, 1.2];
-inerita_kg_mm = [1.95e3, 2.45e3, 2.33e5]; % kg*mm^2, approx. values form swisscube (Phase D, Status of the ADCS of the SwissCube FM before launch, Hervé Péter-Contesse)
+inerita_kg_mm = [1.92e3, 2.46e3, 2.34e3]; % kg*mm^2, approx. values form swisscube (Phase D, Status of the ADCS of the SwissCube FM before launch, Hervé Péter-Contesse)
 inerita = inerita_kg_mm / 1e6; % kg*m^2
 initial_rate = [0.01; 0.3; 0];
 measurement_noise = 4/180*pi; % standard deviation of noise on vector components
@@ -14,7 +14,7 @@ rate_gyro_white_noise_deg_p_s = 0.03; % [deg/s/sqrt(Hz)]
 rate_gyro_white_noise = rate_gyro_white_noise_deg_p_s/180*pi; % [rad/s/sqrt(Hz)]
 rate_gyro_bias_instability_deg_p_s = 0.003; % [deg/s]
 rate_gyro_bias_instability_time = 200; % [s]
-rate_gyro_bias_random_walk_white_noise = (rate_gyro_bias_instability_deg_p_s/sqrt(rate_gyro_bias_instability_time))/180*pi; % [rad/s/sqrt(Hz)]
+rate_gyro_bias_random_walk_white_noise = (rate_gyro_bias_instability_deg_p_s/sqrt(rate_gyro_bias_instability_time))/180*pi; % [rad/s^2/sqrt(Hz)]
 
 filter_model = 'mekf_gyro' % one of 'mekf_cst_mom', 'mekf_gyro', 'basic'
 
