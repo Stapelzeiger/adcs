@@ -45,7 +45,7 @@ classdef Simulation3DBody < handle
                 Q = diag([ones(1, 3)*rate_gyro_white_noise^2, ones(1, 3)*rate_gyro_bias_white_noise^2]);
                 R = eye(2)*measurement_noise_stddev^2;
                 mekf_gyro = MEKF3DGyro(delta_t, Q, R);
-                P0 = diag([ones(1, 3)*100, ones(1, 3)*gyro_init_bias_stddev^2]);
+                P0 = diag([ones(1, 3)*1000, ones(1, 3)*gyro_init_bias_stddev^2]);
                 mekf_gyro.K.reset(zeros(6,1), P0);
                 obj.kalman = mekf_gyro;
             elseif (strcmp(filter_model, 'mekf_cst_mom'))
@@ -53,7 +53,7 @@ classdef Simulation3DBody < handle
                 Q = eye(3)*perturbation_torque_stddev^2;
                 R = eye(2)*measurement_noise_stddev^2;
                 mekf_cst_mom = MEKF3DConstMomentum(delta_t, Q, R, inertia);
-                P0 = diag([ones(1, 3)*100, ones(1, 3)*3^2]);
+                P0 = diag([ones(1, 3)*1000, ones(1, 3)*2^2]);
                 mekf_cst_mom.K.reset(zeros(6,1), P0);
                 obj.kalman = mekf_cst_mom;
             else
