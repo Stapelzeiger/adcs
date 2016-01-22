@@ -28,6 +28,7 @@ classdef MEKF3DGyro < handle
             obj.K = ExtendedKalmanFilter(6);
             obj.delta_t = delta_t;
             obj.last_gyro = zeros(3,1);
+            obj.q_ref = [1; 0; 0; 0];
         end
 
         function attitude_error_transfer_to_reference(self)
@@ -69,7 +70,8 @@ classdef MEKF3DGyro < handle
             b_to_m = quatmult(i_to_m, self.q_ref);
             b_to_m = rotation_matrix_from_quat(b_to_m);
             expected_b = rotate_by_quaternion(expected_i, quatconj(self.q_ref));
-            Proj = [0, 1, 0;  0, 0, 1];
+            Proj = [0, 1, 0;
+                    0, 0, 1];
             z = Proj * b_to_m * measured_b;
             h = @(x) [0; 0]; % expected measurement is zero
             Ha = Proj * b_to_m * cross_prod_matrix(expected_b);

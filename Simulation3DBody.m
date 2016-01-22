@@ -25,17 +25,17 @@ classdef Simulation3DBody < handle
 
             obj.body = RotationBody3D(diag(inertia));
             obj.body.setRate(rate);
+            obj.body.setAttitude(quat_rand());
+            obj.body.setAttitude([cos(pi/4); 0; sin(pi/4); 0 ]);
 
-            obj.gyro_bias = randn(3, 1) * 2/180*pi; % initial gyro bias
-
-            ang = pi/2; % some initial offset
-            initial_estimated_att = [cos(ang/2); 0; 0; sin(ang/2)];
+            gyro_init_bias_stddev = 2/180*pi; % initial gyro bias
+            obj.gyro_bias = randn(3, 1) * gyro_init_bias_stddev;
 
             if (strcmp(filter_model, 'basic'))
                 % basic kalman filter, const momentum, don't use this one
                 Q = diag([ones(1, 4)*0.001^2, ones(1, 3)*0.001^2]);
                 R = eye(6)*measurement_noise_stddev^2;
-                x0 = [initial_estimated_att; zeros(3,1)];
+                x0 = [1; 0; 0; 0; zeros(3,1)];
                 P0 = diag([ones(1, 4)*3^2, ones(1, 3)*10^2]);
                 ekf_cst_mom = EKF3DConstMomentum(delta_t, inertia, Q, R);
                 ekf_cst_mom.K.reset(x0, P0);
@@ -45,15 +45,16 @@ classdef Simulation3DBody < handle
                 Q = diag([ones(1, 3)*rate_gyro_white_noise^2, ones(1, 3)*rate_gyro_bias_white_noise^2]);
                 R = eye(2)*measurement_noise_stddev^2;
                 mekf_gyro = MEKF3DGyro(delta_t, Q, R);
-                mekf_gyro.set_attitude(initial_estimated_att);
+                P0 = diag([ones(1, 3)*100, ones(1, 3)*gyro_init_bias_stddev^2]);
+                mekf_gyro.K.reset(zeros(6,1), P0);
                 obj.kalman = mekf_gyro;
             elseif (strcmp(filter_model, 'mekf_cst_mom'))
                 % const momentum multiplicative kalman filter
                 Q = eye(3)*perturbation_torque_stddev^2;
                 R = eye(2)*measurement_noise_stddev^2;
                 mekf_cst_mom = MEKF3DConstMomentum(delta_t, Q, R, inertia);
-                mekf_cst_mom.set_attitude(initial_estimated_att);
-                mekf_cst_mom.K.reset(zeros(6,1), eye(6)*1000^2);
+                P0 = diag([ones(1, 3)*100, ones(1, 3)*3^2]);
+                mekf_cst_mom.K.reset(zeros(6,1), P0);
                 obj.kalman = mekf_cst_mom;
             else
                 error('invalid filter model')
