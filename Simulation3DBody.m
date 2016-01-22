@@ -26,7 +26,6 @@ classdef Simulation3DBody < handle
             obj.body = RotationBody3D(diag(inertia));
             obj.body.setRate(rate);
             obj.body.setAttitude(quat_rand());
-            obj.body.setAttitude([cos(pi/4); 0; sin(pi/4); 0 ]);
 
             gyro_init_bias_stddev = 2/180*pi; % initial gyro bias
             obj.gyro_bias = randn(3, 1) * gyro_init_bias_stddev;
