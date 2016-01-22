@@ -5,27 +5,29 @@ clf;
 % setup simulation
 delta_t = 0.1; % [s]
 simulation_duration = 60*5; % [s]
-speedup = 1;
+speedup = 1; % 0 or 1
 
-inertia = [1, 1.1, 1.2];
-initial_rate = [0.01; 0.3; 0];
+inertia_kg_mm = [1.92e3, 2.46e3, 2.34e3]; % kg*mm^2, approx. values form swisscube (Phase D, Status of the ADCS of the SwissCube FM before launch, Hervé Péter-Contesse)
+inertia = inertia_kg_mm / 1e6; % kg*m^2
 measurement_noise = 4/180*pi; % standard deviation of noise on vector components
-perturbation_torque = 0.0001;
+perturbation_torque = 9.1e-8; % [Nm], perturbation torque (from Phase 0 CubETH ADCS, Camille Pirat)
+perturbation_torque_noise = perturbation_torque / sqrt(1); % [Nm/sqrt(Hz)] assuming a change every second for white noise density
 
 rate_gyro_white_noise_deg_p_s = 0.03; % [deg/s/sqrt(Hz)]
 rate_gyro_white_noise = rate_gyro_white_noise_deg_p_s/180*pi; % [rad/s/sqrt(Hz)]
 rate_gyro_bias_instability_deg_p_s = 0.003; % [deg/s]
 rate_gyro_bias_instability_time = 200; % [s]
-rate_gyro_bias_random_walk_white_noise = (rate_gyro_bias_instability_deg_p_s/sqrt(rate_gyro_bias_instability_time))/180*pi; % [rad/s/sqrt(Hz)]
+rate_gyro_bias_random_walk_white_noise = (rate_gyro_bias_instability_deg_p_s/sqrt(rate_gyro_bias_instability_time))/180*pi; % [rad/s^2/sqrt(Hz)]
 
 filter_model = 'mekf_cst_mom' % one of 'mekf_cst_mom', 'mekf_gyro', 'basic'
 
+initial_rate = randn(3,1) * 30/180*pi;
 sim = Simulation3DBody(filter_model, ...
                        delta_t, ...
                        inertia, ...
                        initial_rate, ...
                        measurement_noise, ...
-                       perturbation_torque, ...
+                       perturbation_torque_noise, ...
                        rate_gyro_white_noise, ...
                        rate_gyro_bias_random_walk_white_noise);
 
@@ -112,8 +114,8 @@ for t = 0:delta_t:simulation_duration
         z1_v.set('XData', [0, z1(1)] + 6, 'YData', [0, z1(2)], 'ZData', [0, z1(3)]);
         z2_v.set('XData', [0, z2(1)] + 6, 'YData', [0, z2(2)], 'ZData', [0, z2(3)]);
 
-        cube_plot(body_plot,[0,0,0],inertia(1),inertia(2),inertia(3), sim.body.getAttitude);
-        cube_plot(estim_plot,[6,0,0],inertia(1),inertia(2),inertia(3), sim.kalman.get_attitude);
+        cube_plot(body_plot,[0,0,0],1000*inertia(1),1000*inertia(2),1000*inertia(3), sim.body.getAttitude);
+        cube_plot(estim_plot,[6,0,0],1000*inertia(1),1000*inertia(2),1000*inertia(3), sim.kalman.get_attitude);
 
         % rate plot update
         body_rate = sim.body.getRate();
