@@ -16,7 +16,7 @@ classdef Simulation3DBody < handle
     end
 
     methods
-        function obj = Simulation3DBody(filter_model, delta_t, inertia, rate, measurement_noise_stddev, perturbation_torque_stddev, rate_gyro_white_noise, rate_gyro_bias_white_noise)
+        function obj = Simulation3DBody(filter_model, delta_t, inertia, rate_stddev, measurement_noise_stddev, perturbation_torque_stddev, rate_gyro_white_noise, rate_gyro_bias_white_noise)
             obj.delta_t = delta_t;
             obj.measurement_noise_stddev = measurement_noise_stddev;
             obj.perturbation_torque_stddev = perturbation_torque_stddev;
@@ -24,7 +24,7 @@ classdef Simulation3DBody < handle
             obj.rate_gyro_bias_white_noise = rate_gyro_bias_white_noise;
 
             obj.body = RotationBody3D(diag(inertia));
-            obj.body.setRate(rate);
+            obj.body.setRate(randn(3,1) * rate_stddev);
             obj.body.setAttitude(quat_rand());
 
             gyro_init_bias_stddev = 2/180*pi; % initial gyro bias
@@ -52,7 +52,7 @@ classdef Simulation3DBody < handle
                 Q = eye(3)*perturbation_torque_stddev^2;
                 R = eye(2)*measurement_noise_stddev^2;
                 mekf_cst_mom = MEKF3DConstMomentum(delta_t, Q, R, inertia);
-                P0 = diag([ones(1, 3)*1000, ones(1, 3)*2^2]);
+                P0 = diag([ones(1, 3)*1000, ones(1, 3)*rate_stddev^2]);
                 mekf_cst_mom.K.reset(zeros(6,1), P0);
                 obj.kalman = mekf_cst_mom;
             else
