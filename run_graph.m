@@ -55,13 +55,23 @@ figure
 semilogy(time, att_errors')
 hold on
 plot(time, ones(length(time), 1)*2, 'k--') % requirement: 2 deg
-% title([strrep(filter_model, '_', ' ') ' attitude error [deg]'])
+title([strrep(filter_model, '_', ' ') ' attitude error [deg]'])
+xlabel('time [s]')
+ylabel('attitude error [deg]')
+set(gca,'FontSize',20)
+set(gcf, 'PaperPosition',[0 0 16 9])
+% print('attitude_err','-dpng', '-r200')
 
 figure
 semilogy(time, rate_errors')
 hold on
 plot(time, ones(length(time), 1)*0.5, 'k--') % requirement: 0.5 deg/s
-% title([strrep(filter_model, '_', ' ') ' rate error [deg/s]'])
+title([strrep(filter_model, '_', ' ') ' rate error [deg/s]'])
+xlabel('time [s]')
+ylabel('rate error [deg/s]')
+set(gca,'FontSize',20)
+set(gcf, 'PaperPosition',[0 0 16 9])
+% print('rate_err','-dpng', '-r200')
 
 
 
